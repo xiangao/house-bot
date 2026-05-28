@@ -1,0 +1,71 @@
+# ── Search criteria ──────────────────────────────────────────────────────────
+# Edit this file to change what the bot looks for.
+# Run `python main.py` to apply changes immediately.
+# Changes take effect automatically on the next daily run (9am).
+
+search:
+  # Price range in USD
+  min_price: 800000
+  max_price: 1500000
+
+  # Minimum bedrooms and bathrooms
+  min_beds: 3
+  min_baths: 2
+
+  # Only keep listings built in this year or later.
+  # Listings with unknown year are always kept (may be renovated).
+  # Set to 0 or remove this line to disable the filter.
+  min_year_built: 0
+
+  # Property types to include (comma-separated numbers):
+  #   1 = Single family house
+  #   2 = Condo / Co-op
+  #   3 = Townhouse
+  #   4 = Multi-family
+  # Example: "1" for houses only, "1,2,3" for house+condo+townhouse
+  property_types: "1,2,3"
+
+  status: 1  # 1 = for sale (do not change)
+
+# ── Towns ─────────────────────────────────────────────────────────────────────
+# To add a town:
+#   1. Find its Redfin city page, e.g. https://www.redfin.com/city/12345/MA/SomeTown
+#   2. The number in the URL is the region_id
+#   3. Use market: boston for MA towns, newhampshire for NH towns
+# To remove a town: delete or comment out its block.
+#
+# tax_rate_per_1000: residential property-tax rate per $1,000 of assessed value.
+# Estimated annual tax = list_price × tax_rate_per_1000 / 1000.
+# These are APPROXIMATE — VERIFY each year from the town's assessor page (search
+# "<town> MA residential tax rate") or the state DOR. Set to 0 to hide.
+
+towns:
+  - name: "Framingham, MA"
+    region_id: "36114"
+    region_type: "6"
+    market: boston
+    tax_rate_per_1000: 12.66    # approx FY25 residential — verify annually
+
+  - name: "Waltham, MA"
+    region_id: "18529"
+    region_type: "6"
+    market: boston
+    tax_rate_per_1000: 10.36
+
+  - name: "Natick, MA"
+    region_id: "29757"
+    region_type: "6"
+    market: boston
+    tax_rate_per_1000: 12.10
+
+  - name: "Burlington, MA"
+    region_id: "36100"
+    region_type: "6"
+    market: boston
+    tax_rate_per_1000: 8.82
+
+  - name: "Nashua, NH"
+    region_id: "12918"
+    region_type: "6"
+    market: newhampshire
+    tax_rate_per_1000: 17.32     # NH has no income/sales tax → higher rate

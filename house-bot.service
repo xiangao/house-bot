@@ -1,0 +1,14 @@
+[Unit]
+Description=House search monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/projects/claude/house-bot
+ExecStart=%h/projects/claude/house-bot/.venv/bin/python main.py
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
