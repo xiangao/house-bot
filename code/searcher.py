@@ -4,15 +4,19 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-import requests
+# curl_cffi impersonates a real browser's TLS/HTTP fingerprint. Redfin sits
+# behind AWS WAF (CloudFront), which JA3/JA4-fingerprints the TLS ClientHello
+# and 403s plain `requests` at the handshake — before any header is read.
+# Header tweaks do nothing; the fingerprint is what must match a browser.
+from curl_cffi import requests
 
 GIS_CSV_URL = "https://www.redfin.com/stingray/api/gis-csv"
 
+# Chrome version whose fingerprint curl_cffi clones. Bump if Redfin starts
+# 403ing again (an old impersonation target eventually falls off WAF allowlists).
+_IMPERSONATE = "chrome"
+
 _HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-    ),
     "Accept-Language": "en-US,en;q=0.9",
     "Referer": "https://www.redfin.com/",
 }
@@ -34,7 +38,7 @@ class Listing:
 
 
 def _session() -> requests.Session:
-    s = requests.Session()
+    s = requests.Session(impersonate=_IMPERSONATE)
     s.headers.update(_HEADERS)
     return s
 
