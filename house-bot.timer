@@ -1,8 +1,8 @@
 [Unit]
-Description=Run house-bot daily at 9am
+Description=Run house-bot daily at 9:30am
 
 [Timer]
-OnCalendar=*-*-* 09:00:00
+OnCalendar=*-*-* 09:30:00
 Persistent=true
 
 [Install]
