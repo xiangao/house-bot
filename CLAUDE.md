@@ -40,3 +40,12 @@ Logs: `journalctl --user -u house-bot.service`
 Uses Redfin unofficial GIS-CSV endpoint. No API key required.
 - Autocomplete: `stingray/do/location-autocomplete` resolves town → region_id
 - Listings: `stingray/api/gis-csv` returns CSV of matching listings
+
+### Anti-bot (AWS WAF / CloudFront)
+
+Redfin sits behind AWS WAF, which JA3/JA4-fingerprints the TLS ClientHello and
+returns `403 Request blocked` to plain `requests` *at the handshake* — before any
+header/cookie is read (verified 2026-06-01: same IP, `curl` → 200, `requests` → 403).
+`code/searcher.py` therefore uses **`curl_cffi` with `Session(impersonate="chrome")`**
+to present a real Chrome TLS fingerprint. Header tweaks alone do nothing.
+If 403s return, bump the `_IMPERSONATE` Chrome target in `code/searcher.py`.

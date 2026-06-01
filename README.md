@@ -68,3 +68,4 @@ journalctl --user -u house-bot.service    # logs
 
 - **Newly renovated** homes cannot be auto-detected — renovation info is only in individual listing descriptions, not in Redfin's download API. Year built is shown on every card so you can judge manually.
 - Redfin's API returns at most ~350 listings per town per query.
+- Redfin is behind AWS WAF, which blocks ordinary HTTP clients by TLS fingerprint. The bot uses `curl_cffi` (Chrome impersonation) to get through; if you ever see `403 Request blocked`, bump the impersonation target in `code/searcher.py`.
