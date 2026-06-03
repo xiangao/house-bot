@@ -9,6 +9,7 @@ CSV_FIELDS = [
     "listing_id", "address", "price", "beds", "baths", "sqft",
     "url", "town", "property_type", "days_on_market", "year_built",
     "first_seen", "last_seen", "last_price",
+    "remarks", "builder_owned", "builder_match",
 ]
 
 
@@ -48,6 +49,13 @@ def save_listings(csv_path: Path, listings: list[Listing], known: dict[str, dict
             updated[lid]["last_price"] = updated[lid]["price"]
             updated[lid]["price"] = str(listing.price)
             updated[lid]["days_on_market"] = str(listing.days_on_market)
+            # Remarks are cached; only overwrite if we have a non-empty value
+            # (so a transient fetch failure doesn't wipe a good cache).
+            if listing.remarks:
+                updated[lid]["remarks"] = listing.remarks
+            # Builder classification re-runs every time, so always overwrite.
+            updated[lid]["builder_owned"] = "1" if listing.builder_owned else ""
+            updated[lid]["builder_match"] = listing.builder_match
         else:
             updated[lid] = {
                 "listing_id": lid,
@@ -64,6 +72,9 @@ def save_listings(csv_path: Path, listings: list[Listing], known: dict[str, dict
                 "first_seen": today,
                 "last_seen": today,
                 "last_price": str(listing.price),
+                "remarks": listing.remarks,
+                "builder_owned": "1" if listing.builder_owned else "",
+                "builder_match": listing.builder_match,
             }
 
     with open(csv_path, "w", newline="") as f:

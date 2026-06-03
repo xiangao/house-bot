@@ -27,6 +27,10 @@ h2 { font-size: 1rem; font-weight: 600; color: #555; margin: 28px 0 10px;
 .new-build { font-size: 0.75rem; background: #e6f4ea; color: #1e7e34;
              border-radius: 4px; padding: 2px 6px; margin-left: 6px;
              vertical-align: middle; }
+.builder-own { font-size: 0.75rem; background: #fff4d6; color: #8a5a00;
+               border-radius: 4px; padding: 2px 6px; margin-left: 6px;
+               vertical-align: middle; }
+.builder-own[title] { cursor: help; }
 .year { font-size: 0.78rem; color: #888; margin-top: 4px; }
 .tax { font-size: 0.85rem; color: #444; margin-top: 4px; }
 .tax-rate { font-size: 0.75rem; color: #999; }
@@ -57,6 +61,12 @@ def _render_card(row: dict, tax_rate_per_1000: float) -> str:
         pct = (last_price - price) / last_price * 100
         drop_html = f'<span class="drop-badge">▼ {pct:.1f}% drop</span>'
 
+    builder_html = ""
+    if (row.get("builder_owned") or "").strip() == "1":
+        match = (row.get("builder_match") or "").strip()
+        title_attr = f' title="Matched: {match}"' if match else ""
+        builder_html = f'<span class="builder-own"{title_attr}>🔨 Builder&rsquo;s own</span>'
+
     url = row.get("url", "")
     address = row.get("address", "Unknown address")
     prop_type = row.get("property_type", "")
@@ -80,7 +90,7 @@ def _render_card(row: dict, tax_rate_per_1000: float) -> str:
     card_class = "card price-drop" if is_drop else "card"
     return f"""
 <div class="{card_class}">
-  <div class="price">${price:,.0f}{drop_html}{new_build_html}</div>
+  <div class="price">${price:,.0f}{drop_html}{new_build_html}{builder_html}</div>
   <div class="specs">{specs}</div>
   <div class="address"><a href="{url}" target="_blank">{address}</a></div>
   <div class="year">Built: {year_built if year_built else "unknown"}</div>

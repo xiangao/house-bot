@@ -35,6 +35,27 @@ Logs: `journalctl --user -u house-bot.service`
 - **Price drop**: same listing_id, price decreased since last run → email
 - No email if nothing changed
 
+## Builder-Owned Detection
+
+Listings flagged as "builder's own home" (homes builders construct for
+themselves) get a 🔨 badge in `output/listings.html`. No email/alert change.
+
+Pipeline:
+1. `searcher.fetch_remarks(session, url)` extracts the MLS marketing remarks
+   text from the listing HTML (`<div id="marketing-remarks-scroll">`). Used
+   because Redfin's `belowTheFold` JSON API is WAF-blocked even with
+   `curl_cffi` impersonation, but the public HTML page returns 200.
+2. `searcher.enrich_remarks(listings, known)` fetches remarks only for
+   listings not yet cached in `data/listings.csv`. So each listing costs one
+   extra HTTP exactly once across all runs.
+3. `code/classifier.py::is_builder_owned(remarks, year_built)` is a pure
+   regex-based classifier — edit this file to tune patterns. Re-runs on every
+   listing every run, so changing patterns re-classifies the whole CSV next
+   night.
+
+CSV columns added: `remarks` (cached text), `builder_owned` ("1"/""),
+`builder_match` (the snippet that matched, for audit).
+
 ## API
 
 Uses Redfin unofficial GIS-CSV endpoint. No API key required.

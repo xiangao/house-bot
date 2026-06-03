@@ -1,7 +1,9 @@
 import csv
+import html as html_lib
 import io
+import re
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 # curl_cffi impersonates a real browser's TLS/HTTP fingerprint. Redfin sits
@@ -35,6 +37,11 @@ class Listing:
     property_type: str
     days_on_market: int
     year_built: int | None
+    # Populated post-search by enrich_remarks() + classifier.is_builder_owned().
+    # Cached in data/listings.csv so each listing is fetched only once.
+    remarks: str = ""
+    builder_owned: bool = False
+    builder_match: str = ""
 
 
 def _session() -> requests.Session:
@@ -150,6 +157,70 @@ def _parse_row(row: dict, town: str) -> Listing | None:
         days_on_market=int(float(dom_str)) if dom_str else 0,
         year_built=year_built,
     )
+
+
+# Marketing remarks are embedded in the listing HTML page inside a div whose
+# `id` attribute is exactly `marketing-remarks-scroll`. The `belowTheFold`
+# JSON API returns 403 behind WAF even with curl_cffi Chrome impersonation,
+# but the public listing HTML still serves 200 — so we extract from there.
+_REMARKS_DIV_RE = re.compile(
+    r'id="marketing-remarks-scroll"[^>]*>(.*?)</div>',
+    re.DOTALL,
+)
+_TAG_RE = re.compile(r"<[^>]+>")
+_WHITESPACE_RE = re.compile(r"\s+")
+
+
+def fetch_remarks(session: requests.Session, url: str) -> str:
+    """Fetch listing HTML and return the marketing remarks as plain text.
+
+    Returns "" on any failure (404, 403, missing div, network error). The
+    caller treats empty remarks as "not yet classifiable" and the classifier
+    short-circuits to False.
+    """
+    try:
+        resp = session.get(url, timeout=20)
+        if resp.status_code != 200:
+            return ""
+        m = _REMARKS_DIV_RE.search(resp.text)
+        if not m:
+            return ""
+        text = _TAG_RE.sub(" ", m.group(1))
+        text = html_lib.unescape(text)
+        return _WHITESPACE_RE.sub(" ", text).strip()
+    except Exception:
+        return ""
+
+
+def enrich_remarks(
+    listings: list[Listing],
+    known: dict[str, dict],
+    sleep_between: float = 0.8,
+) -> None:
+    """Populate listing.remarks in-place, fetching only when not already cached.
+
+    `known` is the dict loaded from data/listings.csv. If a listing's row in
+    `known` already has non-empty `remarks`, we reuse it — one HTTP per
+    listing, ever. New listings (or any row whose remarks fetch previously
+    failed) get a fresh fetch.
+    """
+    to_fetch = [l for l in listings if not (known.get(l.listing_id, {}).get("remarks") or "").strip()]
+    for l in listings:
+        cached = (known.get(l.listing_id, {}).get("remarks") or "").strip()
+        if cached:
+            l.remarks = cached
+
+    if not to_fetch:
+        return
+
+    session = _session()
+    session.get("https://www.redfin.com/", timeout=15)
+    time.sleep(sleep_between)
+
+    for i, listing in enumerate(to_fetch):
+        listing.remarks = fetch_remarks(session, listing.url)
+        if i < len(to_fetch) - 1:
+            time.sleep(sleep_between)
 
 
 def search_all(config: dict) -> list[Listing]:

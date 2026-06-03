@@ -6,9 +6,10 @@ import yaml
 from dotenv import load_dotenv
 
 from code.analyzer import analyze, load_known, save_listings
+from code.classifier import is_builder_owned
 from code.html_writer import write_html
 from code.notifier import send_notification, write_summary
-from code.searcher import search_all
+from code.searcher import enrich_remarks, search_all
 
 BASE_DIR = Path(__file__).parent
 load_dotenv(BASE_DIR / ".env")
@@ -32,6 +33,20 @@ def main() -> None:
     print(f"Total: {len(listings)} listings across all towns")
 
     known = load_known(LISTINGS_CSV)
+
+    # Enrich each listing with its MLS marketing remarks (cached in CSV; each
+    # listing is fetched at most once across all runs). Then classify whether
+    # the home reads as a builder's personal residence — re-run every time so
+    # editing the classifier reclassifies the whole CSV next run.
+    enrich_remarks(listings, known)
+    for listing in listings:
+        flagged, match = is_builder_owned(listing.remarks, listing.year_built)
+        listing.builder_owned = flagged
+        listing.builder_match = match
+    builder_count = sum(1 for l in listings if l.builder_owned)
+    if builder_count:
+        print(f"Builder-owned flagged: {builder_count}")
+
     result = analyze(listings, known)
 
     print(f"New: {len(result.new_listings)}  Price drops: {len(result.price_drops)}")
