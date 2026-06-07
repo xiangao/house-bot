@@ -55,7 +55,12 @@ def main() -> None:
     write_summary(OUTPUT_PATH, result, tax_rates)
 
     html_path = BASE_DIR / "output" / "listings.html"
-    write_html(LISTINGS_CSV, html_path, tax_rates)
+    search_cfg = config.get("search", {})
+    write_html(
+        LISTINGS_CSV, html_path, tax_rates,
+        min_price=search_cfg.get("min_price"),
+        max_price=search_cfg.get("max_price"),
+    )
     print(f"Listings: {html_path}")
 
     send_notification(result)

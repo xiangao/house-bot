@@ -1,6 +1,19 @@
 import csv
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
+
+# How far back a listing's first_seen can be and still appear in the top
+# "New" section. Rolling window so the section stays useful even if a daily
+# run is missed; per-town sections below always show everything.
+NEW_WINDOW_DAYS = 7
+
+
+def _fmt_price_compact(price: float) -> str:
+    """900000 -> '$900K', 1500000 -> '$1.5M' (for the header label)."""
+    if price >= 1_000_000:
+        millions = price / 1_000_000
+        return f"${millions:.1f}M".replace(".0M", "M")
+    return f"${price / 1000:.0f}K"
 
 
 _CSS = """
@@ -99,7 +112,22 @@ def _render_card(row: dict, tax_rate_per_1000: float) -> str:
 </div>"""
 
 
-def write_html(csv_path: Path, html_path: Path, tax_rates: dict[str, float] | None = None) -> None:
+def _is_new(row: dict, cutoff: date) -> bool:
+    """True if the listing was first seen on or after `cutoff`."""
+    raw = (row.get("first_seen") or "").strip()
+    try:
+        return date.fromisoformat(raw) >= cutoff
+    except ValueError:
+        return False
+
+
+def write_html(
+    csv_path: Path,
+    html_path: Path,
+    tax_rates: dict[str, float] | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
+) -> None:
     tax_rates = tax_rates or {}
     if not csv_path.exists():
         return
@@ -110,9 +138,25 @@ def write_html(csv_path: Path, html_path: Path, tax_rates: dict[str, float] | No
             by_town.setdefault(row["town"], []).append(row)
 
     total = sum(len(v) for v in by_town.values())
-    today = str(date.today())
+    today = date.today()
 
     sections = []
+
+    # Front section: listings first seen within the rolling window, across all
+    # towns, newest-first. Cards are intentionally duplicated below in their
+    # town section — this is a "what's new" summary, not a separate list.
+    cutoff = today - timedelta(days=NEW_WINDOW_DAYS)
+    new_rows = [r for rows in by_town.values() for r in rows if _is_new(r, cutoff)]
+    new_rows.sort(key=lambda r: (r.get("first_seen") or "", -float(r.get("price") or 0)), reverse=True)
+    if new_rows:
+        cards = "".join(
+            _render_card(r, tax_rates.get(r["town"], 0.0)) for r in new_rows
+        )
+        sections.append(
+            f"<h2>🆕 New in last {NEW_WINDOW_DAYS} days ({len(new_rows)})</h2>"
+            f"<div class='grid'>{cards}</div>"
+        )
+
     for town in sorted(by_town):
         listings = sorted(by_town[town], key=lambda r: int(float(r["days_on_market"] or 0)))
         rate = tax_rates.get(town, 0.0)
@@ -120,6 +164,10 @@ def write_html(csv_path: Path, html_path: Path, tax_rates: dict[str, float] | No
         sections.append(f"<h2>{town} ({len(listings)})</h2><div class='grid'>{cards}</div>")
 
     body = "\n".join(sections) if sections else "<p class='none'>No listings yet.</p>"
+
+    price_label = ""
+    if min_price is not None and max_price is not None:
+        price_label = f"{_fmt_price_compact(min_price)}–{_fmt_price_compact(max_price)} · "
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -131,7 +179,7 @@ def write_html(csv_path: Path, html_path: Path, tax_rates: dict[str, float] | No
 </head>
 <body>
 <h1>House Search</h1>
-<p class="meta">{total} listings · $800K–$1.2M · 3+ bd · 2+ ba · updated {today}</p>
+<p class="meta">{total} listings · {price_label}3+ bd · 2+ ba · updated {today}</p>
 {body}
 </body>
 </html>"""

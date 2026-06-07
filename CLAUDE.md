@@ -22,12 +22,18 @@ Logs: `journalctl --user -u house-bot.service`
 
 ## Config
 
-`config/searches.yaml` — towns, price range ($800K–$1.2M), bed/bath minimums (3+/2+).
+`config/searches.yaml` — towns, price range ($900K–$1.5M), bed/bath minimums (3+/2+).
+The header label on the dashboard is derived from `min_price`/`max_price` at
+render time (passed into `html_writer.write_html`), so it can't drift from config.
 
 ## Output
 
 - `data/listings.csv` — all seen listings with first_seen / last_price for change detection
 - `output/latest.txt` — last run summary (new listings + price drops)
+- `output/listings.html` — dashboard. Opens with a **🆕 New in last N days**
+  section (`html_writer.NEW_WINDOW_DAYS`, default 7) built from each row's
+  `first_seen` date, across all towns, newest-first; cards are duplicated in
+  their per-town section below (it's a "what's new" summary, not a separate list).
 
 ## Alert Logic
 

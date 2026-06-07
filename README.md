@@ -10,8 +10,8 @@ All criteria live in one file: **`config/searches.yaml`**
 
 ```yaml
 search:
-  min_price: 800000       # lower price bound
-  max_price: 1200000      # upper price bound
+  min_price: 900000       # lower price bound
+  max_price: 1500000      # upper price bound
   min_beds: 3             # minimum bedrooms
   min_baths: 2            # minimum bathrooms
   min_year_built: 2010    # exclude homes built before this year
@@ -61,7 +61,10 @@ journalctl --user -u house-bot.service    # logs
 1. Queries Redfin's CSV API for each town
 2. Filters client-side: price, beds, baths, year built
 3. Compares against `data/listings.csv` to find new listings and price drops
-4. Generates `output/listings.html` and deploys it to GitHub Pages
+4. Generates `output/listings.html` and deploys it to GitHub Pages. The page
+   opens with a **🆕 New in last 7 days** section (listings first seen within
+   the rolling window, across all towns, newest-first), followed by the full
+   per-town sections.
 5. Sends a desktop notification if anything changed
 
 ## Limitations
