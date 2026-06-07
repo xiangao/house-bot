@@ -10,6 +10,7 @@ from code.classifier import is_builder_owned
 from code.html_writer import write_html
 from code.notifier import send_notification, write_summary
 from code.searcher import enrich_remarks, search_all
+from code.transit import enrich_transit
 
 BASE_DIR = Path(__file__).parent
 load_dotenv(BASE_DIR / ".env")
@@ -46,6 +47,12 @@ def main() -> None:
     builder_count = sum(1 for l in listings if l.builder_owned)
     if builder_count:
         print(f"Builder-owned flagged: {builder_count}")
+
+    # Driving distance to the nearest MBTA commuter rail station (OSRM, cached
+    # per listing in the CSV; only new listings are routed).
+    enrich_transit(listings, known)
+    routed = sum(1 for l in listings if l.station_miles is not None)
+    print(f"Transit distances: {routed}/{len(listings)} have a nearest-station drive")
 
     result = analyze(listings, known)
 

@@ -1,0 +1,742 @@
+[
+ {
+  "name": "Abington",
+  "lat": 42.107156,
+  "lon": -70.934405
+ },
+ {
+  "name": "Anderson/Woburn",
+  "lat": 42.516987,
+  "lon": -71.144475
+ },
+ {
+  "name": "Andover",
+  "lat": 42.658336,
+  "lon": -71.144502
+ },
+ {
+  "name": "Ashland",
+  "lat": 42.26149,
+  "lon": -71.482161
+ },
+ {
+  "name": "Attleboro",
+  "lat": 41.941732,
+  "lon": -71.284214
+ },
+ {
+  "name": "Auburndale",
+  "lat": 42.345833,
+  "lon": -71.250373
+ },
+ {
+  "name": "Ayer",
+  "lat": 42.559074,
+  "lon": -71.588476
+ },
+ {
+  "name": "Back Bay",
+  "lat": 42.34759,
+  "lon": -71.075393
+ },
+ {
+  "name": "Ballardvale",
+  "lat": 42.627356,
+  "lon": -71.159962
+ },
+ {
+  "name": "Bellevue",
+  "lat": 42.286588,
+  "lon": -71.145557
+ },
+ {
+  "name": "Belmont",
+  "lat": 42.395896,
+  "lon": -71.17619
+ },
+ {
+  "name": "Beverly",
+  "lat": 42.547276,
+  "lon": -70.885432
+ },
+ {
+  "name": "Beverly Farms",
+  "lat": 42.561651,
+  "lon": -70.811405
+ },
+ {
+  "name": "Blue Hill Avenue",
+  "lat": 42.271466,
+  "lon": -71.095782
+ },
+ {
+  "name": "Boston Landing",
+  "lat": 42.357293,
+  "lon": -71.139883
+ },
+ {
+  "name": "Bourne",
+  "lat": 41.746497,
+  "lon": -70.588772
+ },
+ {
+  "name": "Bradford",
+  "lat": 42.766912,
+  "lon": -71.088411
+ },
+ {
+  "name": "Braintree",
+  "lat": 42.209964,
+  "lon": -71.001088
+ },
+ {
+  "name": "Brandeis/Roberts",
+  "lat": 42.361898,
+  "lon": -71.260065
+ },
+ {
+  "name": "Bridgewater",
+  "lat": 41.984916,
+  "lon": -70.96537
+ },
+ {
+  "name": "Brockton",
+  "lat": 42.084659,
+  "lon": -71.016534
+ },
+ {
+  "name": "Buzzards Bay",
+  "lat": 41.744805,
+  "lon": -70.616226
+ },
+ {
+  "name": "Campello",
+  "lat": 42.060951,
+  "lon": -71.011004
+ },
+ {
+  "name": "Canton Center",
+  "lat": 42.157095,
+  "lon": -71.14628
+ },
+ {
+  "name": "Canton Junction",
+  "lat": 42.163115,
+  "lon": -71.153581
+ },
+ {
+  "name": "Chelsea",
+  "lat": 42.397222,
+  "lon": -71.04229
+ },
+ {
+  "name": "Church Street",
+  "lat": 41.67433,
+  "lon": -70.939126
+ },
+ {
+  "name": "Cohasset",
+  "lat": 42.24421,
+  "lon": -70.837529
+ },
+ {
+  "name": "Concord",
+  "lat": 42.456565,
+  "lon": -71.357677
+ },
+ {
+  "name": "Dedham Corporate Center",
+  "lat": 42.227079,
+  "lon": -71.174254
+ },
+ {
+  "name": "East Taunton",
+  "lat": 41.868213,
+  "lon": -71.061671
+ },
+ {
+  "name": "East Weymouth",
+  "lat": 42.2191,
+  "lon": -70.9214
+ },
+ {
+  "name": "Endicott",
+  "lat": 42.233249,
+  "lon": -71.158647
+ },
+ {
+  "name": "Fairmount",
+  "lat": 42.253638,
+  "lon": -71.11927
+ },
+ {
+  "name": "Fall River Depot",
+  "lat": 41.713982,
+  "lon": -71.154182
+ },
+ {
+  "name": "Fitchburg",
+  "lat": 42.58072,
+  "lon": -71.792611
+ },
+ {
+  "name": "Forest Hills",
+  "lat": 42.301105,
+  "lon": -71.113625
+ },
+ {
+  "name": "Forge Park/495",
+  "lat": 42.089941,
+  "lon": -71.43902
+ },
+ {
+  "name": "Four Corners/Geneva",
+  "lat": 42.305692,
+  "lon": -71.076096
+ },
+ {
+  "name": "Foxboro",
+  "lat": 42.0951,
+  "lon": -71.26151
+ },
+ {
+  "name": "Framingham",
+  "lat": 42.276108,
+  "lon": -71.420055
+ },
+ {
+  "name": "Franklin",
+  "lat": 42.083071,
+  "lon": -71.396375
+ },
+ {
+  "name": "Freetown",
+  "lat": 41.773482,
+  "lon": -71.091052
+ },
+ {
+  "name": "Gloucester",
+  "lat": 42.616799,
+  "lon": -70.668345
+ },
+ {
+  "name": "Grafton",
+  "lat": 42.2466,
+  "lon": -71.685325
+ },
+ {
+  "name": "Greenbush",
+  "lat": 42.178776,
+  "lon": -70.746641
+ },
+ {
+  "name": "Greenwood",
+  "lat": 42.483005,
+  "lon": -71.067247
+ },
+ {
+  "name": "Halifax",
+  "lat": 42.014739,
+  "lon": -70.824263
+ },
+ {
+  "name": "Hamilton/Wenham",
+  "lat": 42.609212,
+  "lon": -70.874801
+ },
+ {
+  "name": "Hanson",
+  "lat": 42.043967,
+  "lon": -70.882438
+ },
+ {
+  "name": "Haverhill",
+  "lat": 42.773474,
+  "lon": -71.086237
+ },
+ {
+  "name": "Hersey",
+  "lat": 42.275648,
+  "lon": -71.215528
+ },
+ {
+  "name": "Highland",
+  "lat": 42.284969,
+  "lon": -71.153937
+ },
+ {
+  "name": "Holbrook/Randolph",
+  "lat": 42.156343,
+  "lon": -71.027371
+ },
+ {
+  "name": "Hyannis",
+  "lat": 41.660225,
+  "lon": -70.276583
+ },
+ {
+  "name": "Hyde Park",
+  "lat": 42.25503,
+  "lon": -71.125526
+ },
+ {
+  "name": "Ipswich",
+  "lat": 42.676921,
+  "lon": -70.840589
+ },
+ {
+  "name": "Islington",
+  "lat": 42.22105,
+  "lon": -71.183961
+ },
+ {
+  "name": "JFK/UMass",
+  "lat": 42.320685,
+  "lon": -71.052391
+ },
+ {
+  "name": "Kendal Green",
+  "lat": 42.37897,
+  "lon": -71.282411
+ },
+ {
+  "name": "Kingston",
+  "lat": 41.97762,
+  "lon": -70.721709
+ },
+ {
+  "name": "Lakeville",
+  "lat": 41.87821,
+  "lon": -70.918444
+ },
+ {
+  "name": "Lansdowne",
+  "lat": 42.347581,
+  "lon": -71.099974
+ },
+ {
+  "name": "Lawrence",
+  "lat": 42.701806,
+  "lon": -71.15198
+ },
+ {
+  "name": "Lincoln",
+  "lat": 42.413641,
+  "lon": -71.325512
+ },
+ {
+  "name": "Littleton/Route 495",
+  "lat": 42.519236,
+  "lon": -71.502643
+ },
+ {
+  "name": "Lowell",
+  "lat": 42.63535,
+  "lon": -71.314543
+ },
+ {
+  "name": "Lynn Interim",
+  "lat": 42.465165,
+  "lon": -70.940878
+ },
+ {
+  "name": "Malden Center",
+  "lat": 42.426632,
+  "lon": -71.07411
+ },
+ {
+  "name": "Manchester",
+  "lat": 42.573687,
+  "lon": -70.77009
+ },
+ {
+  "name": "Mansfield",
+  "lat": 42.032787,
+  "lon": -71.219917
+ },
+ {
+  "name": "Melrose Highlands",
+  "lat": 42.469464,
+  "lon": -71.068297
+ },
+ {
+  "name": "Melrose/Cedar Park",
+  "lat": 42.458768,
+  "lon": -71.069789
+ },
+ {
+  "name": "Middleborough",
+  "lat": 41.887,
+  "lon": -70.923209
+ },
+ {
+  "name": "Montello",
+  "lat": 42.106555,
+  "lon": -71.022001
+ },
+ {
+  "name": "Montserrat",
+  "lat": 42.562171,
+  "lon": -70.869254
+ },
+ {
+  "name": "Morton Street",
+  "lat": 42.280994,
+  "lon": -71.085475
+ },
+ {
+  "name": "Nantasket Junction",
+  "lat": 42.244959,
+  "lon": -70.869205
+ },
+ {
+  "name": "Natick Center",
+  "lat": 42.285719,
+  "lon": -71.347133
+ },
+ {
+  "name": "Needham Center",
+  "lat": 42.280775,
+  "lon": -71.237686
+ },
+ {
+  "name": "Needham Heights",
+  "lat": 42.293444,
+  "lon": -71.236027
+ },
+ {
+  "name": "Needham Junction",
+  "lat": 42.273187,
+  "lon": -71.235559
+ },
+ {
+  "name": "New Bedford",
+  "lat": 41.644306,
+  "lon": -70.925211
+ },
+ {
+  "name": "Newburyport",
+  "lat": 42.797837,
+  "lon": -70.87797
+ },
+ {
+  "name": "Newmarket",
+  "lat": 42.327415,
+  "lon": -71.065674
+ },
+ {
+  "name": "Newtonville",
+  "lat": 42.351702,
+  "lon": -71.205408
+ },
+ {
+  "name": "Norfolk",
+  "lat": 42.120694,
+  "lon": -71.325217
+ },
+ {
+  "name": "North Beverly",
+  "lat": 42.583779,
+  "lon": -70.883851
+ },
+ {
+  "name": "North Billerica",
+  "lat": 42.593248,
+  "lon": -71.280995
+ },
+ {
+  "name": "North Leominster",
+  "lat": 42.539017,
+  "lon": -71.739186
+ },
+ {
+  "name": "North Scituate",
+  "lat": 42.219528,
+  "lon": -70.788602
+ },
+ {
+  "name": "North Station",
+  "lat": 42.366417,
+  "lon": -71.062326
+ },
+ {
+  "name": "North Wilmington",
+  "lat": 42.571073,
+  "lon": -71.160939
+ },
+ {
+  "name": "Norwood Central",
+  "lat": 42.188775,
+  "lon": -71.199665
+ },
+ {
+  "name": "Norwood Depot",
+  "lat": 42.196857,
+  "lon": -71.196688
+ },
+ {
+  "name": "Oak Grove",
+  "lat": 42.437731,
+  "lon": -71.070705
+ },
+ {
+  "name": "Pawtucket/Central Falls",
+  "lat": 41.878804,
+  "lon": -71.392048
+ },
+ {
+  "name": "Porter",
+  "lat": 42.3884,
+  "lon": -71.119149
+ },
+ {
+  "name": "Providence",
+  "lat": 41.829293,
+  "lon": -71.413301
+ },
+ {
+  "name": "Quincy Center",
+  "lat": 42.251809,
+  "lon": -71.005409
+ },
+ {
+  "name": "Reading",
+  "lat": 42.52221,
+  "lon": -71.108294
+ },
+ {
+  "name": "Readville",
+  "lat": 42.237769,
+  "lon": -71.133569
+ },
+ {
+  "name": "River Works",
+  "lat": 42.449927,
+  "lon": -70.969848
+ },
+ {
+  "name": "Rockport",
+  "lat": 42.655491,
+  "lon": -70.627055
+ },
+ {
+  "name": "Roslindale Village",
+  "lat": 42.287442,
+  "lon": -71.130283
+ },
+ {
+  "name": "Route 128",
+  "lat": 42.210308,
+  "lon": -71.147134
+ },
+ {
+  "name": "Rowley",
+  "lat": 42.726845,
+  "lon": -70.859034
+ },
+ {
+  "name": "Ruggles",
+  "lat": 42.336339,
+  "lon": -71.089517
+ },
+ {
+  "name": "Salem",
+  "lat": 42.524792,
+  "lon": -70.895876
+ },
+ {
+  "name": "Sharon",
+  "lat": 42.124553,
+  "lon": -71.184468
+ },
+ {
+  "name": "Shirley",
+  "lat": 42.545089,
+  "lon": -71.648004
+ },
+ {
+  "name": "Silver Hill",
+  "lat": 42.395625,
+  "lon": -71.302357
+ },
+ {
+  "name": "South Acton",
+  "lat": 42.460375,
+  "lon": -71.457744
+ },
+ {
+  "name": "South Attleboro",
+  "lat": 41.897943,
+  "lon": -71.354621
+ },
+ {
+  "name": "South Station",
+  "lat": 42.351497,
+  "lon": -71.055059
+ },
+ {
+  "name": "South Weymouth",
+  "lat": 42.155025,
+  "lon": -70.953302
+ },
+ {
+  "name": "Southborough",
+  "lat": 42.267024,
+  "lon": -71.524371
+ },
+ {
+  "name": "Stoughton",
+  "lat": 42.124084,
+  "lon": -71.103627
+ },
+ {
+  "name": "Swampscott",
+  "lat": 42.473743,
+  "lon": -70.922537
+ },
+ {
+  "name": "TF Green Airport",
+  "lat": 41.726599,
+  "lon": -71.442453
+ },
+ {
+  "name": "Talbot Avenue",
+  "lat": 42.292246,
+  "lon": -71.07814
+ },
+ {
+  "name": "Uphams Corner",
+  "lat": 42.319125,
+  "lon": -71.068627
+ },
+ {
+  "name": "Wachusett",
+  "lat": 42.553477,
+  "lon": -71.848488
+ },
+ {
+  "name": "Wakefield",
+  "lat": 42.502126,
+  "lon": -71.075566
+ },
+ {
+  "name": "Walpole",
+  "lat": 42.145548,
+  "lon": -71.257646
+ },
+ {
+  "name": "Waltham",
+  "lat": 42.374296,
+  "lon": -71.235615
+ },
+ {
+  "name": "Wareham Village",
+  "lat": 41.7604,
+  "lon": -70.7171
+ },
+ {
+  "name": "Waverley",
+  "lat": 42.3876,
+  "lon": -71.190744
+ },
+ {
+  "name": "Wedgemere",
+  "lat": 42.444948,
+  "lon": -71.140169
+ },
+ {
+  "name": "Wellesley Farms",
+  "lat": 42.323608,
+  "lon": -71.272288
+ },
+ {
+  "name": "Wellesley Hills",
+  "lat": 42.31037,
+  "lon": -71.277044
+ },
+ {
+  "name": "Wellesley Square",
+  "lat": 42.296963,
+  "lon": -71.295709
+ },
+ {
+  "name": "West Concord",
+  "lat": 42.457043,
+  "lon": -71.392892
+ },
+ {
+  "name": "West Gloucester",
+  "lat": 42.611933,
+  "lon": -70.705417
+ },
+ {
+  "name": "West Hingham",
+  "lat": 42.235838,
+  "lon": -70.902708
+ },
+ {
+  "name": "West Medford",
+  "lat": 42.422325,
+  "lon": -71.133936
+ },
+ {
+  "name": "West Natick",
+  "lat": 42.283064,
+  "lon": -71.391797
+ },
+ {
+  "name": "West Newton",
+  "lat": 42.347878,
+  "lon": -71.230528
+ },
+ {
+  "name": "West Roxbury",
+  "lat": 42.281358,
+  "lon": -71.160065
+ },
+ {
+  "name": "Westborough",
+  "lat": 42.269644,
+  "lon": -71.647076
+ },
+ {
+  "name": "Weymouth Landing/East Braintree",
+  "lat": 42.221503,
+  "lon": -70.968152
+ },
+ {
+  "name": "Whitman",
+  "lat": 42.082749,
+  "lon": -70.923411
+ },
+ {
+  "name": "Wickford Junction",
+  "lat": 41.581289,
+  "lon": -71.491147
+ },
+ {
+  "name": "Wilmington",
+  "lat": 42.546624,
+  "lon": -71.174334
+ },
+ {
+  "name": "Winchester Center",
+  "lat": 42.451088,
+  "lon": -71.13783
+ },
+ {
+  "name": "Windsor Gardens",
+  "lat": 42.172127,
+  "lon": -71.219366
+ },
+ {
+  "name": "Worcester",
+  "lat": 42.261056,
+  "lon": -71.794428
+ },
+ {
+  "name": "Wyoming Hill",
+  "lat": 42.451731,
+  "lon": -71.069379
+ }
+]

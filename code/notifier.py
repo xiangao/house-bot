@@ -12,6 +12,13 @@ def _annual_tax(listing: Listing, tax_rates: dict[str, float]) -> float:
     return listing.price * rate / 1000.0
 
 
+def _transit_line(listing: Listing) -> str:
+    if listing.station_miles is None or not listing.nearest_station:
+        return ""
+    mins = f", {listing.station_minutes:.0f} min" if listing.station_minutes is not None else ""
+    return f"  {listing.station_miles:.1f} mi by car to {listing.nearest_station}{mins}\n"
+
+
 def _fmt_listing(listing: Listing, tax_rates: dict[str, float]) -> str:
     sqft = f"  {listing.sqft:,.0f} sqft" if listing.sqft else ""
     dom = f"  {listing.days_on_market}d on market" if listing.days_on_market else ""
@@ -21,6 +28,7 @@ def _fmt_listing(listing: Listing, tax_rates: dict[str, float]) -> str:
         f"  ${listing.price:,.0f}  —  {listing.beds:.0f}bd/{listing.baths:.1f}ba{sqft}{dom}\n"
         f"  {listing.address}\n"
         f"{tax_line}"
+        f"{_transit_line(listing)}"
         f"  {listing.url}\n"
     )
 
@@ -36,6 +44,7 @@ def _fmt_price_drop(drop: PriceDrop, tax_rates: dict[str, float]) -> str:
         f"  {listing.beds:.0f}bd/{listing.baths:.1f}ba{sqft}\n"
         f"  {listing.address}\n"
         f"{tax_line}"
+        f"{_transit_line(listing)}"
         f"  {listing.url}\n"
     )
 

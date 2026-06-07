@@ -37,11 +37,18 @@ class Listing:
     property_type: str
     days_on_market: int
     year_built: int | None
+    latitude: float | None = None
+    longitude: float | None = None
     # Populated post-search by enrich_remarks() + classifier.is_builder_owned().
     # Cached in data/listings.csv so each listing is fetched only once.
     remarks: str = ""
     builder_owned: bool = False
     builder_match: str = ""
+    # Populated post-search by transit.enrich_transit() (driving distance to the
+    # nearest MBTA commuter rail station); cached in data/listings.csv.
+    nearest_station: str = ""
+    station_miles: float | None = None
+    station_minutes: float | None = None
 
 
 def _session() -> requests.Session:
@@ -133,6 +140,16 @@ def _parse_row(row: dict, town: str) -> Listing | None:
     yr_str = (row.get("YEAR BUILT") or "").strip()
     year_built = int(yr_str) if yr_str.isdigit() else None
 
+    def _coord(key: str) -> float | None:
+        raw = (row.get(key) or "").strip()
+        try:
+            return float(raw) if raw else None
+        except ValueError:
+            return None
+
+    latitude = _coord("LATITUDE")
+    longitude = _coord("LONGITUDE")
+
     url_path = row.get(_URL_COL) or ""
     url = f"https://www.redfin.com{url_path}" if url_path.startswith("/") else url_path
 
@@ -156,6 +173,8 @@ def _parse_row(row: dict, town: str) -> Listing | None:
         property_type=row.get("PROPERTY TYPE", ""),
         days_on_market=int(float(dom_str)) if dom_str else 0,
         year_built=year_built,
+        latitude=latitude,
+        longitude=longitude,
     )
 
 

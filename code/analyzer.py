@@ -10,6 +10,8 @@ CSV_FIELDS = [
     "url", "town", "property_type", "days_on_market", "year_built",
     "first_seen", "last_seen", "last_price",
     "remarks", "builder_owned", "builder_match",
+    "latitude", "longitude",
+    "nearest_station", "station_miles", "station_minutes",
 ]
 
 
@@ -56,6 +58,19 @@ def save_listings(csv_path: Path, listings: list[Listing], known: dict[str, dict
             # Builder classification re-runs every time, so always overwrite.
             updated[lid]["builder_owned"] = "1" if listing.builder_owned else ""
             updated[lid]["builder_match"] = listing.builder_match
+            # Coordinates refresh each run (cheap, from the CSV download).
+            if listing.latitude is not None:
+                updated[lid]["latitude"] = str(listing.latitude)
+            if listing.longitude is not None:
+                updated[lid]["longitude"] = str(listing.longitude)
+            # Driving distance is cached; only overwrite on a successful routing
+            # (a transient OSRM failure must not wipe a good cached value).
+            if listing.station_miles is not None:
+                updated[lid]["nearest_station"] = listing.nearest_station
+                updated[lid]["station_miles"] = f"{listing.station_miles:.2f}"
+                updated[lid]["station_minutes"] = (
+                    f"{listing.station_minutes:.1f}" if listing.station_minutes is not None else ""
+                )
         else:
             updated[lid] = {
                 "listing_id": lid,
@@ -75,6 +90,11 @@ def save_listings(csv_path: Path, listings: list[Listing], known: dict[str, dict
                 "remarks": listing.remarks,
                 "builder_owned": "1" if listing.builder_owned else "",
                 "builder_match": listing.builder_match,
+                "latitude": str(listing.latitude) if listing.latitude is not None else "",
+                "longitude": str(listing.longitude) if listing.longitude is not None else "",
+                "nearest_station": listing.nearest_station,
+                "station_miles": f"{listing.station_miles:.2f}" if listing.station_miles is not None else "",
+                "station_minutes": f"{listing.station_minutes:.1f}" if listing.station_minutes is not None else "",
             }
 
     with open(csv_path, "w", newline="") as f:

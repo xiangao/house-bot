@@ -61,7 +61,10 @@ journalctl --user -u house-bot.service    # logs
 1. Queries Redfin's CSV API for each town
 2. Filters client-side: price, beds, baths, year built
 3. Compares against `data/listings.csv` to find new listings and price drops
-4. Generates `output/listings.html` and deploys it to GitHub Pages. The page
+4. Computes each house's **driving distance to the nearest MBTA commuter rail
+   station** (OSRM, no API key; cached per listing), shown on each card and in
+   the email as `🚆 X.X mi · Y min by car to <station>`.
+5. Generates `output/listings.html` and deploys it to GitHub Pages. The page
    opens with a **🆕 New in last 7 days** section (listings first seen within
    the rolling window, grouped by town, newest-first), followed by the full
    per-town sections.

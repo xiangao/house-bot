@@ -263,6 +263,8 @@ h2 {
 }
 .tax { color: #3f4c45; font-size: 0.82rem; }
 .tax-rate { color: var(--muted); }
+.transit { color: var(--blue); font-size: 0.82rem; }
+.transit .station { font-weight: 650; }
 .footer { color: #7b858c; }
 .none {
   border: 1px dashed var(--line);
@@ -343,6 +345,20 @@ def _render_card(row: dict, tax_rate_per_1000: float, is_recent: bool = False) -
         if tax_rate_per_1000 > 0 else ""
     )
 
+    # Driving distance to the nearest MBTA commuter rail station (cached in CSV).
+    transit_html = ""
+    station = (row.get("nearest_station") or "").strip()
+    miles_str = (row.get("station_miles") or "").strip()
+    if station and miles_str:
+        minutes_str = (row.get("station_minutes") or "").strip()
+        drive = f"{float(miles_str):.1f} mi"
+        if minutes_str:
+            drive += f" · {float(minutes_str):.0f} min"
+        transit_html = (
+            f'<div class="transit">🚆 {drive} by car to '
+            f'<span class="station">{_esc(station)}</span></div>'
+        )
+
     class_parts = ["card"]
     if is_drop:
         class_parts.append("price-drop")
@@ -360,6 +376,7 @@ def _render_card(row: dict, tax_rate_per_1000: float, is_recent: bool = False) -
   <div class="details">
     <div>Built: {_esc(year_built if year_built else "unknown")}</div>
     {tax_html}
+    {transit_html}
     <div class="footer">{_esc(" · ".join(footer_parts))}</div>
   </div>
 </div>"""

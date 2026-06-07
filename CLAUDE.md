@@ -37,6 +37,29 @@ render time (passed into `html_writer.write_html`), so it can't drift from confi
   newest-first within each town; cards are duplicated in their per-town section
   below (it's a "what's new" summary, not a separate list).
 
+## Commuter-rail distance
+
+Each listing shows the **driving distance to the nearest MBTA commuter rail
+station** (`🚆 X.X mi · Y min by car to <station>` on the card and in the email).
+
+Pipeline (`code/transit.py`, called from `main.py` after remarks enrichment):
+1. House lat/lon come straight from the Redfin CSV (`LATITUDE`/`LONGITUDE`,
+   parsed in `searcher.py`).
+2. `nearest_station_by_car()` haversine-ranks the vendored stations, keeps the
+   `CANDIDATE_K` (=4) nearest as-the-crow-flies, then road-routes to only those
+   via the **OSRM public demo** (`router.project-osrm.org`, no API key) and keeps
+   the minimum driving distance. The straight-line prefilter avoids routing to
+   all ~148 stations.
+3. Result cached in the CSV (`nearest_station`, `station_miles`,
+   `station_minutes`) so each house is routed at most once, ever — same pattern
+   as remarks. Coordinates refresh each run; the routed distance does not.
+
+Station coordinates are vendored in `code/mbta_commuter_rail_stations.json`
+(148 unique stations, MBTA v3 API `route_type=2`, deduped by name) — no runtime
+MBTA dependency. Regenerate only if stations change. Listings without
+coordinates (e.g. delisted rows retained by the never-prune behavior) show no
+distance.
+
 ## Alert Logic
 
 - **New listing**: listing_id not in data/listings.csv → email
