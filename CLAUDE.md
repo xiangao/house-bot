@@ -32,8 +32,10 @@ render time (passed into `html_writer.write_html`), so it can't drift from confi
 - `output/latest.txt` — last run summary (new listings + price drops)
 - `output/listings.html` — dashboard. Opens with a **🆕 New in last N days**
   section (`html_writer.NEW_WINDOW_DAYS`, default 7) built from each row's
-  `first_seen` date, across all towns, newest-first; cards are duplicated in
-  their per-town section below (it's a "what's new" summary, not a separate list).
+  `first_seen` date. The new section is grouped by town (`<h3>` sub-headings,
+  same order as the full sections, towns with no new listings omitted),
+  newest-first within each town; cards are duplicated in their per-town section
+  below (it's a "what's new" summary, not a separate list).
 
 ## Alert Logic
 

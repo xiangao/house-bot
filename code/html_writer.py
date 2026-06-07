@@ -24,6 +24,7 @@ h1 { font-size: 1.3rem; font-weight: 600; margin-bottom: 4px; }
 .meta { font-size: 0.85rem; color: #666; margin-bottom: 24px; }
 h2 { font-size: 1rem; font-weight: 600; color: #555; margin: 28px 0 10px;
      text-transform: uppercase; letter-spacing: 0.05em; }
+h3 { font-size: 0.85rem; font-weight: 600; color: #777; margin: 14px 0 8px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 .card { background: #fff; border-radius: 8px; padding: 16px;
         box-shadow: 0 1px 3px rgba(0,0,0,.08); }
@@ -142,20 +143,32 @@ def write_html(
 
     sections = []
 
-    # Front section: listings first seen within the rolling window, across all
-    # towns, newest-first. Cards are intentionally duplicated below in their
-    # town section — this is a "what's new" summary, not a separate list.
+    # Front section: listings first seen within the rolling window, grouped by
+    # town (same order as the full sections below), newest-first within each
+    # town. Cards are intentionally duplicated below in their town section —
+    # this is a "what's new" summary, not a separate list.
     cutoff = today - timedelta(days=NEW_WINDOW_DAYS)
-    new_rows = [r for rows in by_town.values() for r in rows if _is_new(r, cutoff)]
-    new_rows.sort(key=lambda r: (r.get("first_seen") or "", -float(r.get("price") or 0)), reverse=True)
-    if new_rows:
-        cards = "".join(
-            _render_card(r, tax_rates.get(r["town"], 0.0)) for r in new_rows
+    new_by_town = {
+        town: sorted(
+            (r for r in rows if _is_new(r, cutoff)),
+            key=lambda r: (r.get("first_seen") or "", -float(r.get("price") or 0)),
+            reverse=True,
         )
-        sections.append(
-            f"<h2>🆕 New in last {NEW_WINDOW_DAYS} days ({len(new_rows)})</h2>"
-            f"<div class='grid'>{cards}</div>"
-        )
+        for town, rows in by_town.items()
+    }
+    new_total = sum(len(v) for v in new_by_town.values())
+    if new_total:
+        blocks = [f"<h2>🆕 New in last {NEW_WINDOW_DAYS} days ({new_total})</h2>"]
+        for town in sorted(new_by_town):
+            town_new = new_by_town[town]
+            if not town_new:
+                continue
+            rate = tax_rates.get(town, 0.0)
+            cards = "".join(_render_card(r, rate) for r in town_new)
+            blocks.append(
+                f"<h3>{town} ({len(town_new)})</h3><div class='grid'>{cards}</div>"
+            )
+        sections.append("".join(blocks))
 
     for town in sorted(by_town):
         listings = sorted(by_town[town], key=lambda r: int(float(r["days_on_market"] or 0)))

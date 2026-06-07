@@ -63,7 +63,7 @@ journalctl --user -u house-bot.service    # logs
 3. Compares against `data/listings.csv` to find new listings and price drops
 4. Generates `output/listings.html` and deploys it to GitHub Pages. The page
    opens with a **🆕 New in last 7 days** section (listings first seen within
-   the rolling window, across all towns, newest-first), followed by the full
+   the rolling window, grouped by town, newest-first), followed by the full
    per-town sections.
 5. Sends a desktop notification if anything changed
 
