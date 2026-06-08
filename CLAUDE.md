@@ -101,3 +101,45 @@ header/cookie is read (verified 2026-06-01: same IP, `curl` → 200, `requests` 
 `code/searcher.py` therefore uses **`curl_cffi` with `Session(impersonate="chrome")`**
 to present a real Chrome TLS fingerprint. Header tweaks alone do nothing.
 If 403s return, bump the `_IMPERSONATE` Chrome target in `code/searcher.py`.
+
+## Interactive dashboard
+
+### Architecture
+
+`code/app.py` is a Flask app that serves an interactive dashboard on the home LAN. It is always-on, managed by `house-bot-dashboard.service` (separate from the nightly `house-bot.timer`). Entry point: `python -m code.app` or `code.app:main`. The factory function is `create_app(csv_path, db_path, tax_rates, min_price, max_price)` — used directly in tests and in `main()`.
+
+Key files:
+- `code/app.py` — Flask routes: `GET /`, `GET /api/annotations`, `POST /api/annotations/<listing_id>`
+- `code/annotations.py` — SQLite helpers (`init_db`, `upsert`, `get_all`); `STATUS_LABELS` list
+- `data/annotations.db` — SQLite DB on disk; gitignored, never pushed
+- `house-bot-dashboard.service` — systemd unit; copy to `~/.config/systemd/user/` to enable
+
+### Enabling the service
+
+```bash
+cp house-bot-dashboard.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now house-bot-dashboard.service
+# logs: journalctl --user -u house-bot-dashboard.service
+```
+
+The dashboard port is set by `dashboard.port` in `config/searches.yaml` (default 8000). It binds `0.0.0.0` so it is reachable from any device on the LAN. No authentication — trusted LAN only.
+
+### Annotations
+
+Status labels (defined in `annotations.STATUS_LABELS`): Favorite, Worth visiting, Visited, Touring scheduled, Maybe, Rejected. Stored in `data/annotations.db`; loaded into `render_page()` via the `annotations=` kwarg. The interactive flag (`interactive=True`) enables the dropdown/note controls in the rendered HTML; the nightly static build uses `interactive=False`.
+
+Both household browsers hit the same server and DB, so annotations are shared in real time. The "Show:" filter is rendered client-side (JS is the `page_js` string inside `render_page` in `code/html_writer.py`; styles are in the module-level `_CSS` constant in the same file).
+
+### Sale pending
+
+`main.py` issues a second Redfin GIS-CSV query (`status=130`) after the active search. Results are merged only for listing IDs already present in `data/listings.csv` (previously Active) — strangers' pending listings are never imported. Merged rows get `status="Pending"` or `status="Contingent"`. `html_writer.render_page` dims these cards and shows a badge. If a pending listing later returns Active, the status column resets and the badge clears on the next render.
+
+### Public mirror and annotations privacy
+
+`mirror_annotations` in `config/searches.yaml` controls what the nightly bot bakes into the GitHub Pages static copy:
+- `full` — labels + notes (world-readable; notes are published publicly)
+- `labels` — labels only; notes stay local
+- `none` — no annotation data in the public copy
+
+The annotation POST API is only reachable on the LAN. The public mirror is view-only.

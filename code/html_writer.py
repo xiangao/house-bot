@@ -1,8 +1,15 @@
 import csv
 import html
+import re
 import shutil
 from datetime import date, timedelta
 from pathlib import Path
+
+from code.annotations import STATUS_LABELS
+
+
+def _label_slug(label: str) -> str:
+    return re.sub(r"[^a-z0-9-]", "", label.lower().replace(" ", "-"))
 
 # How far back a listing's first_seen can be and still appear in the top
 # "New" section. Rolling window so the section stays useful even if a daily
@@ -287,6 +294,29 @@ h2 {
   .card-top { display: block; }
   .badges { justify-content: flex-start; margin-top: 8px; }
 }
+/* --- annotations --- */
+.annotate { padding: 10px 14px 14px; border-top: 1px solid #e7e9e4; display: flex; flex-direction: column; gap: 6px; }
+.annotate-status { font: inherit; padding: 4px 6px; border: 1px solid #cdd2c9; border-radius: 6px; background: #fff; }
+.annotate-note { font: inherit; padding: 6px 8px; border: 1px solid #cdd2c9; border-radius: 6px; resize: vertical; }
+.annotate.readonly { gap: 4px; }
+.label-chip { align-self: flex-start; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #265d7e; color: #fff; }
+.note-readonly { font-size: 13px; color: #4a4f48; white-space: pre-wrap; }
+.save-state.saving::after { content: "saving…"; font-size: 11px; color: #888; }
+.save-state.saved::after  { content: "saved";   font-size: 11px; color: #2e7d32; }
+.save-state.failed::after { content: "save failed"; font-size: 11px; color: #c62828; }
+/* label-colored left border */
+.card.label-favorite          { border-left: 5px solid #c2185b; }
+.card.label-worth-visiting    { border-left: 5px solid #2e7d32; }
+.card.label-visited           { border-left: 5px solid #1565c0; }
+.card.label-touring-scheduled { border-left: 5px solid #6a1b9a; }
+.card.label-maybe             { border-left: 5px solid #f9a825; }
+.card.label-rejected          { border-left: 5px solid #9e9e9e; }
+/* sale pending */
+.badge.pending-badge { background: #8d6e63; color: #fff; }
+.card.card-pending { opacity: 0.55; filter: grayscale(0.35); }
+/* filter bar */
+.filter-bar { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; }
+.filter-bar select { font: inherit; padding: 4px 8px; border: 1px solid #cdd2c9; border-radius: 6px; }
 """
 
 
@@ -294,7 +324,20 @@ def _esc(value: object) -> str:
     return html.escape(str(value), quote=True)
 
 
-def _render_card(row: dict, tax_rate_per_1000: float, is_recent: bool = False) -> str:
+def _render_card(
+    row: dict,
+    tax_rate_per_1000: float,
+    is_recent: bool = False,
+    annotation: dict | None = None,
+    interactive: bool = False,
+) -> str:
+    annotation = annotation or {}
+    listing_id = (row.get("listing_id") or "").strip()
+    label = (annotation.get("status_label") or "").strip()
+    note = (annotation.get("note") or "").strip()
+    status = (row.get("status") or "").strip()
+    is_pending = any(k in status.lower() for k in ("pending", "contingent", "under contract"))
+
     price = float(row["price"])
     last_price = float(row.get("last_price") or row["price"])
     is_drop = price < last_price
@@ -323,6 +366,8 @@ def _render_card(row: dict, tax_rate_per_1000: float, is_recent: bool = False) -
         match = (row.get("builder_match") or "").strip()
         title_attr = f' title="Matched: {_esc(match)}"' if match else ""
         badge_parts.append(f'<span class="badge builder-own"{title_attr}>Builder-owned</span>')
+    if is_pending:
+        badge_parts.append(f'<span class="badge pending-badge">Sale {status.lower()}</span>')
     badges_html = f'<div class="badges">{"".join(badge_parts)}</div>' if badge_parts else ""
 
     url = row.get("url", "")
@@ -364,9 +409,35 @@ def _render_card(row: dict, tax_rate_per_1000: float, is_recent: bool = False) -
         class_parts.append("price-drop")
     if is_recent:
         class_parts.append("is-new")
+    if label:
+        class_parts.append(f"label-{_label_slug(label)}")
+    if is_pending:
+        class_parts.append("card-pending")
     card_class = " ".join(class_parts)
+
+    if interactive:
+        options = ['<option value="">— no label —</option>']
+        for opt in STATUS_LABELS:
+            sel = " selected" if opt == label else ""
+            options.append(f'<option value="{_esc(opt)}"{sel}>{_esc(opt)}</option>')
+        annotate_html = (
+            '<div class="annotate">'
+            f'<select class="annotate-status">{"".join(options)}</select>'
+            f'<textarea class="annotate-note" rows="2" '
+            f'placeholder="Notes…">{_esc(note)}</textarea>'
+            '<span class="save-state" aria-hidden="true"></span>'
+            '</div>'
+        )
+    else:
+        chip = f'<span class="label-chip">{_esc(label)}</span>' if label else ""
+        note_html = f'<div class="note-readonly">{_esc(note)}</div>' if note else ""
+        annotate_html = (
+            f'<div class="annotate readonly">{chip}{note_html}</div>'
+            if (chip or note_html) else ""
+        )
+
     return f"""
-<div class="{card_class}">
+<div class="{card_class}" data-listing-id="{_esc(listing_id)}" data-label="{_esc(label)}">
   <div class="card-top">
     <div class="price">${price:,.0f}</div>
     {badges_html}
@@ -379,6 +450,7 @@ def _render_card(row: dict, tax_rate_per_1000: float, is_recent: bool = False) -
     {transit_html}
     <div class="footer">{_esc(" · ".join(footer_parts))}</div>
   </div>
+  {annotate_html}
 </div>"""
 
 
@@ -391,16 +463,73 @@ def _is_new(row: dict, cutoff: date) -> bool:
         return False
 
 
-def write_html(
+def render_page(
     csv_path: Path,
-    html_path: Path,
     tax_rates: dict[str, float] | None = None,
     min_price: float | None = None,
     max_price: float | None = None,
-) -> None:
+    annotations: dict[str, dict] | None = None,
+    interactive: bool = False,
+) -> str:
     tax_rates = tax_rates or {}
+    annotations = annotations or {}
+    page_js = """
+<script>
+(function () {
+  document.querySelectorAll('.card[data-listing-id]').forEach(function (card) {
+    var id = card.getAttribute('data-listing-id');
+    if (!id) return;
+    var sel = card.querySelector('.annotate-status');
+    var note = card.querySelector('.annotate-note');
+    var state = card.querySelector('.save-state');
+    function setLabelClass(v) {
+      document.querySelectorAll('.card[data-listing-id="' + id + '"]').forEach(function (c) {
+        c.className = c.className.replace(/\\blabel-[\\w-]+/g, '').replace(/\\s+/g, ' ').trim();
+        c.setAttribute('data-label', v || '');
+        if (v) c.classList.add('label-' + v.toLowerCase().replace(/ /g, '-'));
+      });
+    }
+    function save() {
+      if (state) { state.className = 'save-state saving'; }
+      fetch('/api/annotations/' + encodeURIComponent(id), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status_label: sel ? sel.value : '',
+          note: note ? note.value : ''
+        })
+      }).then(function (r) {
+        if (!r.ok) throw new Error('bad status');
+        if (sel) setLabelClass(sel.value);
+        if (state) { state.className = 'save-state saved'; }
+      }).catch(function () {
+        if (state) { state.className = 'save-state failed'; }
+      });
+    }
+    if (sel) sel.addEventListener('change', save);
+    if (note) {
+      var t;
+      note.addEventListener('input', function () {
+        clearTimeout(t); t = setTimeout(save, 800);
+      });
+    }
+  });
+  var filter = document.getElementById('label-filter');
+  if (filter) {
+    filter.addEventListener('change', function () {
+      var v = filter.value;
+      document.querySelectorAll('.card[data-listing-id]').forEach(function (card) {
+        var sel = card.querySelector('.annotate-status');
+        var lbl = sel ? sel.value : (card.getAttribute('data-label') || '');
+        card.style.display = (!v || v === lbl) ? '' : 'none';
+      });
+    });
+  }
+})();
+</script>
+"""
     if not csv_path.exists():
-        return
+        return ""
 
     by_town: dict[str, list[dict]] = {}
     with open(csv_path, newline="") as f:
@@ -449,7 +578,12 @@ def write_html(
             if not town_new:
                 continue
             rate = tax_rates.get(town, 0.0)
-            cards = "".join(_render_card(r, rate, is_recent=True) for r in town_new)
+            cards = "".join(
+                _render_card(r, rate, is_recent=True,
+                             annotation=annotations.get(r.get("listing_id", "")),
+                             interactive=interactive)
+                for r in town_new
+            )
             blocks.append(
                 f'<div class="town-block"><h3 class="town-heading">{_esc(town)} ({len(town_new)})</h3>'
                 f'<div class="grid">{cards}</div></div>'
@@ -460,7 +594,12 @@ def write_html(
     for town in sorted(by_town):
         listings = sorted(by_town[town], key=lambda r: int(float(r["days_on_market"] or 0)))
         rate = tax_rates.get(town, 0.0)
-        cards = "".join(_render_card(r, rate, is_recent=_is_new(r, cutoff)) for r in listings)
+        cards = "".join(
+            _render_card(r, rate, is_recent=_is_new(r, cutoff),
+                         annotation=annotations.get(r.get("listing_id", "")),
+                         interactive=interactive)
+            for r in listings
+        )
         sections.append(
             '<section class="section">'
             '<div class="section-header">'
@@ -472,6 +611,14 @@ def write_html(
         )
 
     body = "\n".join(sections) if sections else "<p class='none'>No listings yet.</p>"
+
+    filter_options = '<option value="">All labels</option>' + "".join(
+        f'<option value="{_esc(l)}">{_esc(l)}</option>' for l in STATUS_LABELS
+    )
+    filter_bar = (
+        f'<div class="filter-bar"><label for="label-filter">Show:</label>'
+        f'<select id="label-filter">{filter_options}</select></div>'
+    )
 
     price_label = ""
     if min_price is not None and max_price is not None:
@@ -510,12 +657,32 @@ def write_html(
     </div>
   </header>
   <div class="content">
+    {filter_bar}
     {body}
   </div>
 </main>
+{page_js}
 </body>
 </html>"""
 
+    return html
+
+
+def write_html(
+    csv_path: Path,
+    html_path: Path,
+    tax_rates: dict[str, float] | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
+    annotations: dict[str, dict] | None = None,
+    interactive: bool = False,
+) -> None:
+    html = render_page(
+        csv_path, tax_rates, min_price, max_price,
+        annotations=annotations, interactive=interactive,
+    )
+    if not html:
+        return
     html_path.parent.mkdir(parents=True, exist_ok=True)
     asset_src = Path(__file__).resolve().parent.parent / "site" / "chalkboard.jpg"
     asset_dst = html_path.parent / "chalkboard.jpg"

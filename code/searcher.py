@@ -37,6 +37,9 @@ class Listing:
     property_type: str
     days_on_market: int
     year_built: int | None
+    # Redfin listing status ("Active", "Pending", "Contingent", ...). Refreshed
+    # each run; drives the "Sale pending" badge + dimmed card in html_writer.
+    status: str = ""
     latitude: float | None = None
     longitude: float | None = None
     # Populated post-search by enrich_remarks() + classifier.is_builder_owned().
@@ -173,6 +176,7 @@ def _parse_row(row: dict, town: str) -> Listing | None:
         property_type=row.get("PROPERTY TYPE", ""),
         days_on_market=int(float(dom_str)) if dom_str else 0,
         year_built=year_built,
+        status=(row.get("STATUS") or "").strip(),
         latitude=latitude,
         longitude=longitude,
     )
@@ -265,3 +269,38 @@ def search_all(config: dict) -> list[Listing]:
         time.sleep(1.0)
 
     return all_listings
+
+
+def fetch_pending_map(config: dict) -> dict[str, str]:
+    """Return {mls#: status_label} for Pending/Contingent listings matching the
+    search criteria across all towns (Redfin status=130).
+
+    Used only to flag listings we are ALREADY tracking that have gone under
+    contract — the caller (analyzer.save_listings) intersects this with known
+    listings and never imports new pending homes.
+
+    Note: results are filtered by the same price/bed/bath/year criteria as the
+    active search, so a tracked listing whose price moved outside the configured
+    band right before going pending may not be flagged that run (acceptable edge
+    case for this tool).
+    """
+    session = _session()
+    session.get("https://www.redfin.com/", timeout=15)
+    time.sleep(1.0)
+
+    search_cfg = dict(config["search"])
+    search_cfg["status"] = 130
+
+    pending: dict[str, str] = {}
+    for town_cfg in config["towns"]:
+        try:
+            listings = search_town(
+                session, town_cfg, search_cfg,
+                town_cfg["region_id"], town_cfg["region_type"],
+            )
+            for listing in listings:
+                pending[listing.listing_id] = listing.status or "Pending"
+        except Exception as e:
+            print(f"  WARNING pending [{town_cfg['name']}]: {e}")
+        time.sleep(1.0)
+    return pending

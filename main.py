@@ -9,7 +9,8 @@ from code.analyzer import analyze, load_known, save_listings
 from code.classifier import is_builder_owned
 from code.html_writer import write_html
 from code.notifier import send_notification, write_summary
-from code.searcher import enrich_remarks, search_all
+from code import annotations as ann
+from code.searcher import enrich_remarks, fetch_pending_map, search_all
 from code.transit import enrich_transit
 
 BASE_DIR = Path(__file__).parent
@@ -32,6 +33,10 @@ def main() -> None:
     print("Searching Redfin...")
     listings = search_all(config)
     print(f"Total: {len(listings)} listings across all towns")
+
+    print("Checking for under-contract (pending) listings...")
+    pending_map = fetch_pending_map(config)
+    print(f"Pending/contingent in criteria: {len(pending_map)}")
 
     known = load_known(LISTINGS_CSV)
 
@@ -58,8 +63,16 @@ def main() -> None:
 
     print(f"New: {len(result.new_listings)}  Price drops: {len(result.price_drops)}")
 
-    save_listings(LISTINGS_CSV, listings, known)
+    save_listings(LISTINGS_CSV, listings, known, pending_map=pending_map)
     write_summary(OUTPUT_PATH, result, tax_rates)
+
+    db_path = BASE_DIR / "data" / "annotations.db"
+    mirror_scope = config.get("mirror_annotations", "full")
+    mirror_anns = ann.get_all(db_path)
+    if mirror_scope == "none":
+        mirror_anns = {}
+    elif mirror_scope == "labels":
+        mirror_anns = {k: {**v, "note": ""} for k, v in mirror_anns.items()}
 
     html_path = BASE_DIR / "output" / "listings.html"
     search_cfg = config.get("search", {})
@@ -67,6 +80,8 @@ def main() -> None:
         LISTINGS_CSV, html_path, tax_rates,
         min_price=search_cfg.get("min_price"),
         max_price=search_cfg.get("max_price"),
+        annotations=mirror_anns,
+        interactive=False,
     )
     print(f"Listings: {html_path}")
 
