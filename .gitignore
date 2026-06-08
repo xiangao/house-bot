@@ -6,3 +6,4 @@ data/
 output/
 site/
 *.bak
+data/annotations.db

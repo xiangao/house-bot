@@ -1,0 +1,16 @@
+[Unit]
+Description=House search interactive dashboard (Flask)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/projects/claude/house-bot
+ExecStart=%h/projects/claude/house-bot/.venv/bin/python -m code.app
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
