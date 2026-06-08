@@ -110,7 +110,10 @@ def save_listings(
     # import strangers' pending homes. Active status set above always wins, so
     # skip ids that appeared in this run's active `listings`.
     if pending_map:
-        active_ids = {l.listing_id for l in listings}
+        active_ids = {listing.listing_id for listing in listings}
+        # A listing that later sells/delists drops out of BOTH active and the
+        # pending query, so it keeps its last-known status (e.g. "Pending")
+        # permanently. Accepted for this tool — we never prune rows anyway.
         for lid, label in pending_map.items():
             if lid in updated and lid not in active_ids:
                 updated[lid]["status"] = label
