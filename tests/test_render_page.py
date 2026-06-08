@@ -34,3 +34,15 @@ def test_render_page_returns_html_string(tmp_path: Path):
     html = render_page(csv_path, {"Natick, MA": 12.10}, 900000, 1500000)
     assert html.startswith("<!DOCTYPE html>")
     assert "1 Main St" in html
+
+
+def test_render_page_interactive_includes_controls_and_label(tmp_path: Path):
+    csv_path = tmp_path / "listings.csv"
+    _write_csv(csv_path, [_row()])
+    html = render_page(
+        csv_path, {"Natick, MA": 12.10}, 900000, 1500000,
+        annotations={"73000001": {"status_label": "Favorite", "note": "n"}},
+        interactive=True,
+    )
+    assert "annotate-status" in html       # interactive control rendered
+    assert "label-favorite" in html         # annotation threaded to the card

@@ -1,5 +1,6 @@
 import csv
 import html
+import re
 import shutil
 from datetime import date, timedelta
 from pathlib import Path
@@ -8,7 +9,7 @@ from code.annotations import STATUS_LABELS
 
 
 def _label_slug(label: str) -> str:
-    return label.lower().replace(" ", "-")
+    return re.sub(r"[^a-z0-9-]", "", label.lower().replace(" ", "-"))
 
 # How far back a listing's first_seen can be and still appear in the top
 # "New" section. Rolling window so the section stays useful even if a daily
