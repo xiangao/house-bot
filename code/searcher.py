@@ -278,6 +278,11 @@ def fetch_pending_map(config: dict) -> dict[str, str]:
     Used only to flag listings we are ALREADY tracking that have gone under
     contract — the caller (analyzer.save_listings) intersects this with known
     listings and never imports new pending homes.
+
+    Note: results are filtered by the same price/bed/bath/year criteria as the
+    active search, so a tracked listing whose price moved outside the configured
+    band right before going pending may not be flagged that run (acceptable edge
+    case for this tool).
     """
     session = _session()
     session.get("https://www.redfin.com/", timeout=15)
@@ -293,8 +298,8 @@ def fetch_pending_map(config: dict) -> dict[str, str]:
                 session, town_cfg, search_cfg,
                 town_cfg["region_id"], town_cfg["region_type"],
             )
-            for l in listings:
-                pending[l.listing_id] = l.status or "Pending"
+            for listing in listings:
+                pending[listing.listing_id] = listing.status or "Pending"
         except Exception as e:
             print(f"  WARNING pending [{town_cfg['name']}]: {e}")
         time.sleep(1.0)
