@@ -4,6 +4,12 @@ import shutil
 from datetime import date, timedelta
 from pathlib import Path
 
+from code.annotations import STATUS_LABELS
+
+
+def _label_slug(label: str) -> str:
+    return label.lower().replace(" ", "-")
+
 # How far back a listing's first_seen can be and still appear in the top
 # "New" section. Rolling window so the section stays useful even if a daily
 # run is missed; per-town sections below always show everything.
@@ -294,7 +300,20 @@ def _esc(value: object) -> str:
     return html.escape(str(value), quote=True)
 
 
-def _render_card(row: dict, tax_rate_per_1000: float, is_recent: bool = False) -> str:
+def _render_card(
+    row: dict,
+    tax_rate_per_1000: float,
+    is_recent: bool = False,
+    annotation: dict | None = None,
+    interactive: bool = False,
+) -> str:
+    annotation = annotation or {}
+    listing_id = (row.get("listing_id") or "").strip()
+    label = (annotation.get("status_label") or "").strip()
+    note = (annotation.get("note") or "").strip()
+    status = (row.get("status") or "").strip()
+    is_pending = status in ("Pending", "Contingent")
+
     price = float(row["price"])
     last_price = float(row.get("last_price") or row["price"])
     is_drop = price < last_price
@@ -323,6 +342,8 @@ def _render_card(row: dict, tax_rate_per_1000: float, is_recent: bool = False) -
         match = (row.get("builder_match") or "").strip()
         title_attr = f' title="Matched: {_esc(match)}"' if match else ""
         badge_parts.append(f'<span class="badge builder-own"{title_attr}>Builder-owned</span>')
+    if is_pending:
+        badge_parts.append(f'<span class="badge pending-badge">Sale {status.lower()}</span>')
     badges_html = f'<div class="badges">{"".join(badge_parts)}</div>' if badge_parts else ""
 
     url = row.get("url", "")
@@ -364,9 +385,35 @@ def _render_card(row: dict, tax_rate_per_1000: float, is_recent: bool = False) -
         class_parts.append("price-drop")
     if is_recent:
         class_parts.append("is-new")
+    if label:
+        class_parts.append(f"label-{_label_slug(label)}")
+    if is_pending:
+        class_parts.append("card-pending")
     card_class = " ".join(class_parts)
+
+    if interactive:
+        options = ['<option value="">— no label —</option>']
+        for opt in STATUS_LABELS:
+            sel = " selected" if opt == label else ""
+            options.append(f'<option value="{_esc(opt)}"{sel}>{_esc(opt)}</option>')
+        annotate_html = (
+            '<div class="annotate">'
+            f'<select class="annotate-status">{"".join(options)}</select>'
+            f'<textarea class="annotate-note" rows="2" '
+            f'placeholder="Notes…">{_esc(note)}</textarea>'
+            '<span class="save-state" aria-hidden="true"></span>'
+            '</div>'
+        )
+    else:
+        chip = f'<span class="label-chip">{_esc(label)}</span>' if label else ""
+        note_html = f'<div class="note-readonly">{_esc(note)}</div>' if note else ""
+        annotate_html = (
+            f'<div class="annotate readonly">{chip}{note_html}</div>'
+            if (chip or note_html) else ""
+        )
+
     return f"""
-<div class="{card_class}">
+<div class="{card_class}" data-listing-id="{_esc(listing_id)}" data-label="{_esc(label)}">
   <div class="card-top">
     <div class="price">${price:,.0f}</div>
     {badges_html}
@@ -379,6 +426,7 @@ def _render_card(row: dict, tax_rate_per_1000: float, is_recent: bool = False) -
     {transit_html}
     <div class="footer">{_esc(" · ".join(footer_parts))}</div>
   </div>
+  {annotate_html}
 </div>"""
 
 
@@ -391,16 +439,18 @@ def _is_new(row: dict, cutoff: date) -> bool:
         return False
 
 
-def write_html(
+def render_page(
     csv_path: Path,
-    html_path: Path,
     tax_rates: dict[str, float] | None = None,
     min_price: float | None = None,
     max_price: float | None = None,
-) -> None:
+    annotations: dict[str, dict] | None = None,
+    interactive: bool = False,
+) -> str:
     tax_rates = tax_rates or {}
+    annotations = annotations or {}
     if not csv_path.exists():
-        return
+        return ""
 
     by_town: dict[str, list[dict]] = {}
     with open(csv_path, newline="") as f:
@@ -449,7 +499,12 @@ def write_html(
             if not town_new:
                 continue
             rate = tax_rates.get(town, 0.0)
-            cards = "".join(_render_card(r, rate, is_recent=True) for r in town_new)
+            cards = "".join(
+                _render_card(r, rate, is_recent=True,
+                             annotation=annotations.get(r.get("listing_id", "")),
+                             interactive=interactive)
+                for r in town_new
+            )
             blocks.append(
                 f'<div class="town-block"><h3 class="town-heading">{_esc(town)} ({len(town_new)})</h3>'
                 f'<div class="grid">{cards}</div></div>'
@@ -460,7 +515,12 @@ def write_html(
     for town in sorted(by_town):
         listings = sorted(by_town[town], key=lambda r: int(float(r["days_on_market"] or 0)))
         rate = tax_rates.get(town, 0.0)
-        cards = "".join(_render_card(r, rate, is_recent=_is_new(r, cutoff)) for r in listings)
+        cards = "".join(
+            _render_card(r, rate, is_recent=_is_new(r, cutoff),
+                         annotation=annotations.get(r.get("listing_id", "")),
+                         interactive=interactive)
+            for r in listings
+        )
         sections.append(
             '<section class="section">'
             '<div class="section-header">'
@@ -516,6 +576,24 @@ def write_html(
 </body>
 </html>"""
 
+    return html
+
+
+def write_html(
+    csv_path: Path,
+    html_path: Path,
+    tax_rates: dict[str, float] | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
+    annotations: dict[str, dict] | None = None,
+    interactive: bool = False,
+) -> None:
+    html = render_page(
+        csv_path, tax_rates, min_price, max_price,
+        annotations=annotations, interactive=interactive,
+    )
+    if not html:
+        return
     html_path.parent.mkdir(parents=True, exist_ok=True)
     asset_src = Path(__file__).resolve().parent.parent / "site" / "chalkboard.jpg"
     asset_dst = html_path.parent / "chalkboard.jpg"
