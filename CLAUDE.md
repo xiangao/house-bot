@@ -129,7 +129,7 @@ The dashboard port is set by `dashboard.port` in `config/searches.yaml` (default
 
 Status labels (defined in `annotations.STATUS_LABELS`): Favorite, Worth visiting, Visited, Touring scheduled, Maybe, Rejected. Stored in `data/annotations.db`; loaded into `render_page()` via the `annotations=` kwarg. The interactive flag (`interactive=True`) enables the dropdown/note controls in the rendered HTML; the nightly static build uses `interactive=False`.
 
-Both household browsers hit the same server and DB, so annotations are shared in real time. The "Show:" filter is rendered client-side (JS in `code/templates/`).
+Both household browsers hit the same server and DB, so annotations are shared in real time. The "Show:" filter is rendered client-side (JS is the `page_js` string inside `render_page` in `code/html_writer.py`; styles are in the module-level `_CSS` constant in the same file).
 
 ### Sale pending
 

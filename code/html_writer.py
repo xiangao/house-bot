@@ -336,7 +336,7 @@ def _render_card(
     label = (annotation.get("status_label") or "").strip()
     note = (annotation.get("note") or "").strip()
     status = (row.get("status") or "").strip()
-    is_pending = status in ("Pending", "Contingent")
+    is_pending = any(k in status.lower() for k in ("pending", "contingent", "under contract"))
 
     price = float(row["price"])
     last_price = float(row.get("last_price") or row["price"])

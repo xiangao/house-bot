@@ -37,3 +37,16 @@ def test_label_adds_css_class_for_filtering():
     html = _render_card(ROW, 0.0, annotation=ann, interactive=True)
     assert "label-worth-visiting" in html
     assert 'data-label="Worth visiting"' in html
+
+
+def test_noncanonical_under_contract_status_is_flagged():
+    row = {**ROW, "status": "Active Under Contract"}
+    html = _render_card(row, 0.0)
+    assert "card-pending" in html
+    assert "pending-badge" in html
+
+
+def test_active_status_not_flagged_pending():
+    row = {**ROW, "status": "Active"}
+    html = _render_card(row, 0.0)
+    assert "card-pending" not in html
