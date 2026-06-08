@@ -294,6 +294,29 @@ h2 {
   .card-top { display: block; }
   .badges { justify-content: flex-start; margin-top: 8px; }
 }
+/* --- annotations --- */
+.annotate { padding: 10px 14px 14px; border-top: 1px solid #e7e9e4; display: flex; flex-direction: column; gap: 6px; }
+.annotate-status { font: inherit; padding: 4px 6px; border: 1px solid #cdd2c9; border-radius: 6px; background: #fff; }
+.annotate-note { font: inherit; padding: 6px 8px; border: 1px solid #cdd2c9; border-radius: 6px; resize: vertical; }
+.annotate.readonly { gap: 4px; }
+.label-chip { align-self: flex-start; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #265d7e; color: #fff; }
+.note-readonly { font-size: 13px; color: #4a4f48; white-space: pre-wrap; }
+.save-state.saving::after { content: "saving…"; font-size: 11px; color: #888; }
+.save-state.saved::after  { content: "saved";   font-size: 11px; color: #2e7d32; }
+.save-state.failed::after { content: "save failed"; font-size: 11px; color: #c62828; }
+/* label-colored left border */
+.card.label-favorite          { border-left: 5px solid #c2185b; }
+.card.label-worth-visiting    { border-left: 5px solid #2e7d32; }
+.card.label-visited           { border-left: 5px solid #1565c0; }
+.card.label-touring-scheduled { border-left: 5px solid #6a1b9a; }
+.card.label-maybe             { border-left: 5px solid #f9a825; }
+.card.label-rejected          { border-left: 5px solid #9e9e9e; }
+/* sale pending */
+.badge.pending-badge { background: #8d6e63; color: #fff; }
+.card.card-pending { opacity: 0.55; filter: grayscale(0.35); }
+/* filter bar */
+.filter-bar { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; }
+.filter-bar select { font: inherit; padding: 4px 8px; border: 1px solid #cdd2c9; border-radius: 6px; }
 """
 
 
@@ -450,6 +473,59 @@ def render_page(
 ) -> str:
     tax_rates = tax_rates or {}
     annotations = annotations or {}
+    page_js = """
+<script>
+(function () {
+  document.querySelectorAll('.card[data-listing-id]').forEach(function (card) {
+    var id = card.getAttribute('data-listing-id');
+    if (!id) return;
+    var sel = card.querySelector('.annotate-status');
+    var note = card.querySelector('.annotate-note');
+    var state = card.querySelector('.save-state');
+    function setLabelClass(v) {
+      card.className = card.className.replace(/\\blabel-[\\w-]+/g, '').trim();
+      card.setAttribute('data-label', v || '');
+      if (v) card.classList.add('label-' + v.toLowerCase().replace(/ /g, '-'));
+    }
+    function save() {
+      if (state) { state.className = 'save-state saving'; }
+      fetch('/api/annotations/' + encodeURIComponent(id), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status_label: sel ? sel.value : '',
+          note: note ? note.value : ''
+        })
+      }).then(function (r) {
+        if (!r.ok) throw new Error('bad status');
+        if (sel) setLabelClass(sel.value);
+        if (state) { state.className = 'save-state saved'; }
+      }).catch(function () {
+        if (state) { state.className = 'save-state failed'; }
+      });
+    }
+    if (sel) sel.addEventListener('change', save);
+    if (note) {
+      var t;
+      note.addEventListener('input', function () {
+        clearTimeout(t); t = setTimeout(save, 800);
+      });
+    }
+  });
+  var filter = document.getElementById('label-filter');
+  if (filter) {
+    filter.addEventListener('change', function () {
+      var v = filter.value;
+      document.querySelectorAll('.card[data-listing-id]').forEach(function (card) {
+        var sel = card.querySelector('.annotate-status');
+        var lbl = sel ? sel.value : (card.getAttribute('data-label') || '');
+        card.style.display = (!v || v === lbl) ? '' : 'none';
+      });
+    });
+  }
+})();
+</script>
+"""
     if not csv_path.exists():
         return ""
 
@@ -534,6 +610,14 @@ def render_page(
 
     body = "\n".join(sections) if sections else "<p class='none'>No listings yet.</p>"
 
+    filter_options = '<option value="">All labels</option>' + "".join(
+        f'<option value="{_esc(l)}">{_esc(l)}</option>' for l in STATUS_LABELS
+    )
+    filter_bar = (
+        f'<div class="filter-bar"><label for="label-filter">Show:</label>'
+        f'<select id="label-filter">{filter_options}</select></div>'
+    )
+
     price_label = ""
     if min_price is not None and max_price is not None:
         price_label = f"{_fmt_price_compact(min_price)}&ndash;{_fmt_price_compact(max_price)}"
@@ -571,9 +655,11 @@ def render_page(
     </div>
   </header>
   <div class="content">
+    {filter_bar}
     {body}
   </div>
 </main>
+{page_js}
 </body>
 </html>"""
 
