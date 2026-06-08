@@ -66,8 +66,10 @@ journalctl --user -u house-bot.service    # logs
    the email as `🚆 X.X mi · Y min by car to <station>`.
 5. Generates `output/listings.html` and deploys it to GitHub Pages. The page
    opens with a **🆕 New in last 7 days** section (listings first seen within
-   the rolling window, grouped by town, newest-first), followed by the full
-   per-town sections.
+   the rolling window, grouped by town, newest-first), followed by the
+   per-town sections. New listings appear only in the New section (not
+   duplicated below) until they age out of the window, then move down into
+   their town section.
 5. Sends a desktop notification if anything changed
 
 ## Interactive dashboard
@@ -93,7 +95,7 @@ This is separate from `house-bot.timer`, which handles the nightly fetch and dep
 
 ### Annotations
 
-Each listing card has a **status dropdown** (Favorite / Worth visiting / Visited / Touring scheduled / Maybe / Rejected) and a free-text note field. Edits save instantly via the API to `data/annotations.db` (SQLite, gitignored, never pushed). Both you and your wife can annotate from any browser on the same WiFi — all browsers hit the same server and database, so annotations are shared in real time. A **"Show:" filter** at the top of the page hides everything except the chosen label. The status label drives a colored left border on each card.
+Each listing card has a **status dropdown** (Favorite / Favorite but pending / Interested / Interested but pending / Worth visiting / Visited / Touring scheduled / Maybe / Rejected) and a free-text note field. Edits save instantly via the API to `data/annotations.db` (SQLite, gitignored, never pushed). Both you and your wife can annotate from any browser on the same WiFi — all browsers hit the same server and database, so annotations are shared in real time. A **"Show:" filter** at the top of the page hides everything except the chosen label. The status label drives a colored left border on each card.
 
 ### Sale pending
 

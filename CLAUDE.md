@@ -34,8 +34,13 @@ render time (passed into `html_writer.write_html`), so it can't drift from confi
   section (`html_writer.NEW_WINDOW_DAYS`, default 7) built from each row's
   `first_seen` date. The new section is grouped by town (`<h3>` sub-headings,
   same order as the full sections, towns with no new listings omitted),
-  newest-first within each town; cards are duplicated in their per-town section
-  below (it's a "what's new" summary, not a separate list).
+  newest-first within each town. Listings inside the New window are **not**
+  duplicated below: each per-town section in `render_page` filters out rows
+  where `_is_new(row, cutoff)` is true, so a listing lives in the New section
+  until it ages past `NEW_WINDOW_DAYS`, then moves down into its town section.
+  A town whose listings are all still "new" is omitted from the lower sections
+  (it's fully represented up top). When there are no new listings the filter
+  removes nothing and every town section shows its full set.
 
 ## Commuter-rail distance
 
@@ -127,7 +132,7 @@ The dashboard port is set by `dashboard.port` in `config/searches.yaml` (default
 
 ### Annotations
 
-Status labels (defined in `annotations.STATUS_LABELS`): Favorite, Worth visiting, Visited, Touring scheduled, Maybe, Rejected. Stored in `data/annotations.db`; loaded into `render_page()` via the `annotations=` kwarg. The interactive flag (`interactive=True`) enables the dropdown/note controls in the rendered HTML; the nightly static build uses `interactive=False`.
+Status labels (defined in `annotations.STATUS_LABELS`): Favorite, Favorite but pending, Interested, Interested but pending, Worth visiting, Visited, Touring scheduled, Maybe, Rejected. The "but pending" labels are manual user sentiment and are independent of the automatic Redfin "Sale pending" badge (which is driven by the `status` column). Each label gets a colored left border in `_CSS`; the "but pending" variants reuse their base color with a dashed border. Stored in `data/annotations.db`; loaded into `render_page()` via the `annotations=` kwarg. The interactive flag (`interactive=True`) enables the dropdown/note controls in the rendered HTML; the nightly static build uses `interactive=False`.
 
 Both household browsers hit the same server and DB, so annotations are shared in real time. The "Show:" filter is rendered client-side (JS is the `page_js` string inside `render_page` in `code/html_writer.py`; styles are in the module-level `_CSS` constant in the same file).
 

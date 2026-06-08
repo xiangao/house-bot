@@ -36,6 +36,26 @@ def test_render_page_returns_html_string(tmp_path: Path):
     assert "1 Main St" in html
 
 
+def test_new_listing_not_duplicated_in_town_section(tmp_path: Path):
+    """A listing inside the New window shows only in the New section; an older
+    listing shows only in its town section. No card is rendered twice."""
+    from datetime import date
+
+    today = date.today().isoformat()
+    csv_path = tmp_path / "listings.csv"
+    _write_csv(csv_path, [
+        _row(listing_id="NEW1", address="9 Fresh St", first_seen=today),
+        _row(listing_id="OLD1", address="2 Stale St", first_seen="2026-01-01"),
+    ])
+    html = render_page(csv_path, {"Natick, MA": 12.10}, 900000, 1500000)
+
+    assert html.count('data-listing-id="NEW1"') == 1   # New section only
+    assert html.count('data-listing-id="OLD1"') == 1   # town section only
+    assert "New in the last" in html
+    # The new card sits above its town section in the document.
+    assert html.index("9 Fresh St") < html.index("2 Stale St")
+
+
 def test_render_page_interactive_includes_controls_and_label(tmp_path: Path):
     csv_path = tmp_path / "listings.csv"
     _write_csv(csv_path, [_row()])

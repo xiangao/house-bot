@@ -28,6 +28,8 @@ def test_get_all_missing_db_is_empty(tmp_path: Path):
 
 def test_status_labels_is_the_agreed_set():
     assert ann.STATUS_LABELS == [
-        "Favorite", "Worth visiting", "Visited",
+        "Favorite", "Favorite but pending",
+        "Interested", "Interested but pending",
+        "Worth visiting", "Visited",
         "Touring scheduled", "Maybe", "Rejected",
     ]

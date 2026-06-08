@@ -304,8 +304,12 @@ h2 {
 .save-state.saving::after { content: "saving…"; font-size: 11px; color: #888; }
 .save-state.saved::after  { content: "saved";   font-size: 11px; color: #2e7d32; }
 .save-state.failed::after { content: "save failed"; font-size: 11px; color: #c62828; }
-/* label-colored left border */
+/* label-colored left border. "but pending" variants share their base
+   sentiment's color but use a dashed border to read as tentative. */
 .card.label-favorite          { border-left: 5px solid #c2185b; }
+.card.label-favorite-but-pending   { border-left: 5px dashed #c2185b; }
+.card.label-interested              { border-left: 5px solid #00838f; }
+.card.label-interested-but-pending  { border-left: 5px dashed #00838f; }
 .card.label-worth-visiting    { border-left: 5px solid #2e7d32; }
 .card.label-visited           { border-left: 5px solid #1565c0; }
 .card.label-touring-scheduled { border-left: 5px solid #6a1b9a; }
@@ -317,6 +321,29 @@ h2 {
 /* filter bar */
 .filter-bar { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; }
 .filter-bar select { font: inherit; padding: 4px 8px; border: 1px solid #cdd2c9; border-radius: 6px; }
+/* make the "New" band a contained, tinted panel so it reads as distinct from
+   the older per-town listings below it */
+.section-new {
+  margin-top: 8px;
+  padding: 6px 18px 20px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--blue);
+  border-radius: 10px;
+}
+.section-new .section-header { border-bottom-color: #cbd8cf; }
+/* full-width banner separating the New band from the "older" town sections */
+.band-divider {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 40px 0 6px;
+  padding-bottom: 9px;
+  border-bottom: 2px solid var(--green-dark);
+}
+.band-divider h2 { font-size: 1.05rem; }
+.band-divider .section-count { color: var(--muted); font-size: 0.78rem; font-weight: 650; }
 """
 
 
@@ -591,16 +618,27 @@ def render_page(
         blocks.append("</section>")
         sections.append("".join(blocks))
 
+    # Per-town sections show everything EXCEPT listings still inside the New
+    # window — those live in the front "New" section, so we don't duplicate
+    # them here. When there are no new listings the filter removes nothing.
+    town_sections = []
+    older_total = 0
     for town in sorted(by_town):
-        listings = sorted(by_town[town], key=lambda r: int(float(r["days_on_market"] or 0)))
+        listings = [
+            r for r in sorted(by_town[town], key=lambda r: int(float(r["days_on_market"] or 0)))
+            if not _is_new(r, cutoff)
+        ]
+        if not listings:
+            continue
+        older_total += len(listings)
         rate = tax_rates.get(town, 0.0)
         cards = "".join(
-            _render_card(r, rate, is_recent=_is_new(r, cutoff),
+            _render_card(r, rate, is_recent=False,
                          annotation=annotations.get(r.get("listing_id", "")),
                          interactive=interactive)
             for r in listings
         )
-        sections.append(
+        town_sections.append(
             '<section class="section">'
             '<div class="section-header">'
             f"<h2>{_esc(town)}</h2>"
@@ -609,6 +647,18 @@ def render_page(
             f'<div class="grid">{cards}</div>'
             "</section>"
         )
+
+    # If a New band is shown above, head the per-town block with an explicit
+    # "Older listings" banner so the two blocks are clearly distinct. With no
+    # new listings there's nothing to contrast against, so the banner is omitted.
+    if town_sections and new_total:
+        sections.append(
+            '<div class="band-divider">'
+            "<h2>Older listings &middot; by town</h2>"
+            f'<span class="section-count">first seen 7+ days ago &middot; {older_total} listings</span>'
+            "</div>"
+        )
+    sections.extend(town_sections)
 
     body = "\n".join(sections) if sections else "<p class='none'>No listings yet.</p>"
 

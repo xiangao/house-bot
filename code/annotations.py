@@ -13,7 +13,9 @@ from pathlib import Path
 # Canonical status-label vocabulary. Edit here to change the pick-list; the
 # Flask app validates against this list and html_writer renders options from it.
 STATUS_LABELS = [
-    "Favorite", "Worth visiting", "Visited",
+    "Favorite", "Favorite but pending",
+    "Interested", "Interested but pending",
+    "Worth visiting", "Visited",
     "Touring scheduled", "Maybe", "Rejected",
 ]
 
