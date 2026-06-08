@@ -97,7 +97,7 @@ Each listing card has a **status dropdown** (Favorite / Worth visiting / Visited
 
 ### Sale pending
 
-The nightly run issues a second Redfin query (status=130) to detect under-contract listings. Only homes already tracked in `data/listings.csv` (previously seen as Active) get a "Sale pending" or "Sale contingent" badge and a dimmed card. Listings that were never in your search results are ignored. If a pending deal falls through, the listing reappears as Active and the badge clears on the next run.
+The nightly run issues a second Redfin query (status=130) to detect under-contract listings. Only homes already tracked in `data/listings.csv` (previously seen as Active) get a "Sale pending" or "Sale contingent" badge and a dimmed card. Listings that were never in your search results are ignored. If a pending deal falls through and the listing returns to the active market, its status resets to Active and the badge clears automatically on the next run. (A listing that actually sells or is delisted disappears from both the active and pending queries; because the bot never prunes rows from `data/listings.csv`, it keeps its last-known "Pending" or "Contingent" status and remains on the dashboard dimmed indefinitely.)
 
 ### Public mirror and privacy
 
