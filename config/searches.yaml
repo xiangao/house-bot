@@ -27,6 +27,16 @@ search:
 
   status: 1  # 1 = for sale (do not change)
 
+# ── Local dashboard app ────────────────────────────────────────────────────
+dashboard:
+  port: 8000              # http://<this-desktop>:8000 on your home WiFi
+
+# What the bot bakes into the PUBLIC GitHub Pages mirror:
+#   full   = status labels + notes  (NOTE: the gh-pages repo is world-readable)
+#   labels = status labels only (notes stay local)
+#   none   = no annotations on the public copy
+mirror_annotations: full
+
 # ── Towns ─────────────────────────────────────────────────────────────────────
 # To add a town:
 #   1. Find its Redfin city page, e.g. https://www.redfin.com/city/12345/MA/SomeTown
