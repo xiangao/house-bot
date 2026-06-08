@@ -269,3 +269,33 @@ def search_all(config: dict) -> list[Listing]:
         time.sleep(1.0)
 
     return all_listings
+
+
+def fetch_pending_map(config: dict) -> dict[str, str]:
+    """Return {mls#: status_label} for Pending/Contingent listings matching the
+    search criteria across all towns (Redfin status=130).
+
+    Used only to flag listings we are ALREADY tracking that have gone under
+    contract — the caller (analyzer.save_listings) intersects this with known
+    listings and never imports new pending homes.
+    """
+    session = _session()
+    session.get("https://www.redfin.com/", timeout=15)
+    time.sleep(1.0)
+
+    search_cfg = dict(config["search"])
+    search_cfg["status"] = 130
+
+    pending: dict[str, str] = {}
+    for town_cfg in config["towns"]:
+        try:
+            listings = search_town(
+                session, town_cfg, search_cfg,
+                town_cfg["region_id"], town_cfg["region_type"],
+            )
+            for l in listings:
+                pending[l.listing_id] = l.status or "Pending"
+        except Exception as e:
+            print(f"  WARNING pending [{town_cfg['name']}]: {e}")
+        time.sleep(1.0)
+    return pending
