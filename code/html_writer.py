@@ -483,9 +483,11 @@ def render_page(
     var note = card.querySelector('.annotate-note');
     var state = card.querySelector('.save-state');
     function setLabelClass(v) {
-      card.className = card.className.replace(/\\blabel-[\\w-]+/g, '').trim();
-      card.setAttribute('data-label', v || '');
-      if (v) card.classList.add('label-' + v.toLowerCase().replace(/ /g, '-'));
+      document.querySelectorAll('.card[data-listing-id="' + id + '"]').forEach(function (c) {
+        c.className = c.className.replace(/\\blabel-[\\w-]+/g, '').replace(/\\s+/g, ' ').trim();
+        c.setAttribute('data-label', v || '');
+        if (v) c.classList.add('label-' + v.toLowerCase().replace(/ /g, '-'));
+      });
     }
     function save() {
       if (state) { state.className = 'save-state saving'; }
