@@ -2,3 +2,5 @@ requests
 curl_cffi
 pyyaml
 python-dotenv
+flask
+pytest
