@@ -37,6 +37,9 @@ class Listing:
     property_type: str
     days_on_market: int
     year_built: int | None
+    # Redfin listing status ("Active", "Pending", "Contingent", ...). Refreshed
+    # each run; drives the "Sale pending" badge + dimmed card in html_writer.
+    status: str = ""
     latitude: float | None = None
     longitude: float | None = None
     # Populated post-search by enrich_remarks() + classifier.is_builder_owned().
@@ -173,6 +176,7 @@ def _parse_row(row: dict, town: str) -> Listing | None:
         property_type=row.get("PROPERTY TYPE", ""),
         days_on_market=int(float(dom_str)) if dom_str else 0,
         year_built=year_built,
+        status=(row.get("STATUS") or "").strip(),
         latitude=latitude,
         longitude=longitude,
     )
