@@ -12,6 +12,7 @@ CSV_FIELDS = [
     "remarks", "builder_owned", "builder_match",
     "latitude", "longitude",
     "nearest_station", "station_miles", "station_minutes",
+    "status",
 ]
 
 
@@ -39,7 +40,12 @@ def load_known(csv_path: Path) -> dict[str, dict]:
     return known
 
 
-def save_listings(csv_path: Path, listings: list[Listing], known: dict[str, dict]) -> None:
+def save_listings(
+    csv_path: Path,
+    listings: list[Listing],
+    known: dict[str, dict],
+    pending_map: dict[str, str] | None = None,
+) -> None:
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     today = str(date.today())
     updated = dict(known)
@@ -71,6 +77,7 @@ def save_listings(csv_path: Path, listings: list[Listing], known: dict[str, dict
                 updated[lid]["station_minutes"] = (
                     f"{listing.station_minutes:.1f}" if listing.station_minutes is not None else ""
                 )
+            updated[lid]["status"] = listing.status or "Active"
         else:
             updated[lid] = {
                 "listing_id": lid,
@@ -95,7 +102,18 @@ def save_listings(csv_path: Path, listings: list[Listing], known: dict[str, dict
                 "nearest_station": listing.nearest_station,
                 "station_miles": f"{listing.station_miles:.2f}" if listing.station_miles is not None else "",
                 "station_minutes": f"{listing.station_minutes:.1f}" if listing.station_minutes is not None else "",
+                "status": listing.status or "Active",
             }
+
+    # Flag listings we are already tracking that have gone under contract.
+    # Only touch ids already in `updated` (known or seen-active this run); never
+    # import strangers' pending homes. Active status set above always wins, so
+    # skip ids that appeared in this run's active `listings`.
+    if pending_map:
+        active_ids = {l.listing_id for l in listings}
+        for lid, label in pending_map.items():
+            if lid in updated and lid not in active_ids:
+                updated[lid]["status"] = label
 
     with open(csv_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
