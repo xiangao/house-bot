@@ -79,3 +79,21 @@ towns:
     region_type: "6"
     market: newhampshire
     tax_rate_per_1000: 17.32     # NH has no income/sales tax → higher rate
+
+  - name: "Jamaica Plain, MA"
+    region_id: "1381"
+    region_type: "1"             # 1 = neighborhood (Boston neighborhood)
+    market: boston
+    tax_rate_per_1000: 12.40    # Boston FY2025 residential rate — verify annually
+
+  - name: "Sherborn, MA"
+    region_id: "29708"
+    region_type: "6"
+    market: boston
+    tax_rate_per_1000: 16.58    # FY2025 residential rate — verify annually
+
+  - name: "Dover, MA"
+    region_id: "36106"
+    region_type: "6"
+    market: boston
+    tax_rate_per_1000: 11.19    # FY2026 residential rate — verify annually
